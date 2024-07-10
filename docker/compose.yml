@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+ 
+###################################################################
+# Services
+###################################################################
+  fastapi:
+    image: mbari/fastapi-vss:${GIT_VERSION}
+    container_name: fastapi-vss
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/health"]
+    env_file:
+      - ./.env
+    ports:
+      - "8000:80"
+    volumes:
+      - ./config.yml:/app/config.yml
+    restart: always
+    networks:
+      - vss
+  redis-uav:
+    image: redis
+    container_name: redis-uav
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-uav-data:/data
+    restart: always
+    command: redis-server --appendonly yes
+    networks:
+      - vss
+  redis-cfe:
+    image: redis
+    container_name: redis-cfe
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis-cfe-data:/data
+    restart: always
+    command: redis-server --appendonly yes
+    networks:
+      - vss
+volumes:
+    scratch:
+    redis-uav-data:
+    redis-cfe-data:
+
