@@ -1,0 +1,6 @@
+[submodule "submodules/aidata"]
+	path = submodules/aidata
+	url = https://github.com/mbari-org/aidata
+[submodule "src/submodules/aidata"]
+	path = src/submodules/aidata
+	url = https://github.com/mbari-org/aidata

@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+ 
+###################################################################
+# Services
+###################################################################
+  fastapi:
+    image: mbari/fastapi-tator:${GIT_VERSION}
+    container_name: fastapi-tator
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/health"]
+    env_file:
+      - ./.env
+    ports:
+      - "8001:80"
+    volumes:
+      - ./config.yml:/app/config.yml
+    restart: always
+volumes:
+    scratch:

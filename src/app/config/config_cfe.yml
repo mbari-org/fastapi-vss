@@ -1,0 +1,11 @@
+# config_cfe.yml
+# Config file for CFE project production
+mounts:
+  - name: "image"
+    path: "/mnt/CFElab"
+    host: "mantis.shore.mbari.org"
+    nginx_root: "/CFElab"
+
+redis:
+  host: "ada.local"
+  port: 6381
