@@ -9,9 +9,9 @@ cd $BASE_DIR
 export $(grep -v '^#' $BASE_DIR/.env |  xargs)
 
 # Run the api server
-export PYTHONPATH=$BASE_DIR/src
+export PYTHONPATH=$BASE_DIR/src:$BASE_DIR/src/submodules/aidata
 pkill -f "uvicorn main:app"
 
-echo "FastAPI server running at http://localhost:8001"
-echo "FastAPI docs running at http://localhost:8001/docs"
-cd $BASE_DIR/src/app && uvicorn main:app --port 8001 --reload
+echo "FastAPI server running at http://localhost:8002"
+echo "FastAPI docs running at http://localhost:8002/docs"
+cd $BASE_DIR/src/app && uvicorn main:app --port 8002 --reload

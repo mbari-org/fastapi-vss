@@ -1,5 +1,5 @@
 # fastapi-vss, Apache-2.0 license
-# Filename: app/conf/init.py
+# Filename: app/conf/init_config.py
 # Description:  Logger for fastapi-vss. Logs to both a file and the console
 
 import logging
@@ -13,7 +13,7 @@ DEBUG = True
 class _Singleton(type):
     """A metaclass that creates a Singleton base class when called."""
 
-    instances = {}
+    instances: dict = {}
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls.instances:
@@ -57,7 +57,7 @@ class CustomLogger(Singleton):
 
         self._logger.info(f"Logging to {log_filename}")
 
-    def loggers(self) -> logging.Logger:
+    def loggers(self) -> logging.Logger or None:
         return self._logger
 
 
