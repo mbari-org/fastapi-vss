@@ -9,3 +9,20 @@ Accept: application/json
     });
 %}
 
+
+### Test the knn endpoint with a few test images
+POST http://localhost:8002/knn/3/901902-uavs
+Accept: application/json
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="7e28463e-bab3-5279-b5ea-a741c2997101.png"
+Content-Type: image/png
+
+< ./tests/images/crops/7e28463e-bab3-5279-b5ea-a741c2997101.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="0069afd3-65fc-55f3-8a86-b0f08d004a65.png"
+Content-Type: image/png
+
+< ./tests/images/crops/0069afd3-65fc-55f3-8a86-b0f08d004a65.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
