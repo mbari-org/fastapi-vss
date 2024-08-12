@@ -1,20 +1,19 @@
 version: "3.8"
 
-services:
- 
 ###################################################################
 # Services
 ###################################################################
-  fastapi:
-    image: mbari/fastapi-vss:${GIT_VERSION}
+services:
+  fastapi-vss:
+    image: mbari/fastapi-vss:0.1.0:${GIT_VERSION}
     container_name: fastapi-vss
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/health"]
     env_file:
       - ./.env
-    ports:
-      - "8001:80"
-    user: "$MLDEVOPS_GID:$MLDEVOPS_UID"
+    environment:
+      - PORT=8001
+    volumes:
+      - /tmp/fastapi-vssgit/.env:/app/.env
+    network_mode: host
     restart: always
-volumes:
-    scratch:
