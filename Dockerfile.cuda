@@ -20,30 +20,33 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
+ARG GITHUB_TOKEN
 ARG GIT_VERSION=latest
 ARG IMAGE_URI=mbari/fastapi-vss:${GIT_VERSION}
 
 ## setup virtualenv
+ENV APP_HOME=/app
 RUN pip install virtualenv
 RUN virtualenv $APP_DIR/env -p python3
-ENV VIRTUAL_ENV $APP_DIR/env
-ENV PATH $APP_DIR/env/bin:$PATH
-ENV PYTHONPATH=${APP_HOME}/fastapi-vss
+ENV VIRTUAL_ENV $APP_HOME/env
+ENV PATH $APP_HOME/env/bin:$PATH
+ENV PYTHONPATH=${APP_HOME}/src:${APP_HOME}/src/submodules/aidata
 
-ENV APP_HOME=/app
-WORKDIR $APP_DIR/src/app
-COPY ./src/requirements.txt $APP_DIR/src/requirements.txt
-COPY ./src/app $APP_DIR/src/app
-RUN git submodule update --init --recursive
+WORKDIR $APP_HOME
+COPY . . 
+WORKDIR $APP_HOME/src/submodules
+RUN git clone https://${GITHUB_TOKEN}@github.com/mbari-org/aidata
 ENV HF_HOME=/tmp/transformers_cache
 
+WORKDIR $APP_HOME
 RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install -r requirements.txt && \
-    python3 -m pip install -r submodules/aidata/requirements.txt && \
-    python3 -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-
-RUN chmod a+rwx -R $APP_DIR
+    python3 -m pip install -r src/requirements.txt && \
+    python3 -m pip install -r src/submodules/aidata/requirements.txt
 
 # run the FastAPI server
-EXPOSE 80
-ENTRYPOINT ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+WORKDIR $APP_HOME/src/app
+ENV PORT=80
+EXPOSE ${PORT}
+ENTRYPOINT ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port ${PORT} "]
+
+
