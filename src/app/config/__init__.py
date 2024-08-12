@@ -33,7 +33,8 @@ def init_config() -> dict:
     :return: Dictionary of configuration settings keyed by project name
     """
     env_path = Path(__file__).resolve().parent.parent.parent.parent / ".env"
-    dotenv.load_dotenv(env_path)
+    if env_path.exists():
+        dotenv.load_dotenv(env_path)
     if not env_path.exists():
         raise Exception(f"No .env file found in {env_path}")
 
