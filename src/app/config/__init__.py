@@ -8,6 +8,8 @@ import tempfile
 
 import redis
 import yaml
+import os
+import dotenv
 
 from app.logger import info
 from submodules.aidata.aidata.predictors.process_vits import ViTWrapper
@@ -30,6 +32,11 @@ def init_config() -> dict:
     Initialize the configuration for the application
     :return: Dictionary of configuration settings keyed by project name
     """
+    env_path = Path(__file__).resolve().parent.parent.parent.parent / ".env"
+    dotenv.load_dotenv(env_path)
+    if not env_path.exists():
+        raise Exception(f"No .env file found in {env_path}")
+
     config = {}
     # Read the yaml configuration files for each project
     for yaml_path in config_path.rglob('*.yml'):
@@ -39,11 +46,14 @@ def init_config() -> dict:
         # Read the yaml configuration files for each project
         with yaml_path.open('r') as yaml_file:
             data = yaml.safe_load(yaml_file)
+            info(f"Reading configuration from {yaml_path}")
+            info(data)
             redis_host = data['redis']['host']
             redis_port = data['redis']['port']
+            password = os.getenv("REDIS_PASSWD")
 
             info(f"Connecting to redis at {redis_host}:{redis_port}")
-            r = redis.Redis(host=redis_host, port=redis_port, password=data['redis']['password'])
+            r = redis.Redis(host=redis_host, port=redis_port, password=password)
             v = ViTWrapper(r, "cpu", False, BATCH_SIZE)
 
             project = data['tator']['project']
