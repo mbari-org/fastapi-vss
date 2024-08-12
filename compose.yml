@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+ 
+###################################################################
+# Services
+###################################################################
+  fastapi:
+    image: mbari/fastapi-vss:${GIT_VERSION}
+    container_name: fastapi-vss
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/health"]
+    env_file:
+      - ./.env
+    ports:
+      - "8001:80"
+    user: "$MLDEVOPS_GID:$MLDEVOPS_UID"
+    restart: always
+volumes:
+    scratch:

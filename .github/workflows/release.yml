@@ -18,3 +18,11 @@ jobs:
         uses: python-semantic-release/python-semantic-release@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: docker push version
+        if: steps.semantic.outputs.released == 'true'
+        run: |
+          export RELEASE_VERSION=$(echo ${{ steps.semantic.outputs.tag }} | cut -c 2-)-cuda124
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+          docker buildx create --name mybuilder --platform linux/amd64 --use
+          docker buildx build --push --platform linux/amd64 -t mbari/fastapi-vss:$RELEASE_VERSION --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION -f Dockerfile.cuda .

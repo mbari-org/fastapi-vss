@@ -1,0 +1,49 @@
+# ================================================================
+#  Docker image for fastapi-vss (CUDA enabled)
+#  ================================================================
+FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+
+LABEL vendor="MBARI"
+LABEL maintainer="dcline@mbari.org"
+LABEL license="Apache License 2.0"
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    wget \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG GIT_VERSION=latest
+ARG IMAGE_URI=mbari/fastapi-vss:${GIT_VERSION}
+
+## setup virtualenv
+RUN pip install virtualenv
+RUN virtualenv $APP_DIR/env -p python3
+ENV VIRTUAL_ENV $APP_DIR/env
+ENV PATH $APP_DIR/env/bin:$PATH
+ENV PYTHONPATH=${APP_HOME}/fastapi-vss
+
+ENV APP_HOME=/app
+WORKDIR $APP_DIR/src/app
+COPY ./src/requirements.txt $APP_DIR/src/requirements.txt
+COPY ./src/app $APP_DIR/src/app
+RUN git submodule update --init --recursive
+ENV HF_HOME=/tmp/transformers_cache
+
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install -r requirements.txt && \
+    python3 -m pip install -r submodules/aidata/requirements.txt && \
+    python3 -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+
+RUN chmod a+rwx -R $APP_DIR
+
+# run the FastAPI server
+EXPOSE 80
+ENTRYPOINT ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
