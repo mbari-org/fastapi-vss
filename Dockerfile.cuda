@@ -7,6 +7,11 @@ LABEL vendor="MBARI"
 LABEL maintainer="dcline@mbari.org"
 LABEL license="Apache License 2.0"
 
+ARG PORT=80
+ARG GH_TOKEN
+ARG GIT_VERSION=latest
+ARG IMAGE_URI=mbari/fastapi-vss:${GIT_VERSION}
+
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -20,10 +25,6 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-ARG GITHUB_TOKEN
-ARG GIT_VERSION=latest
-ARG IMAGE_URI=mbari/fastapi-vss:${GIT_VERSION}
-
 ## setup virtualenv
 ENV APP_HOME=/app
 RUN pip install virtualenv
@@ -35,7 +36,7 @@ ENV PYTHONPATH=${APP_HOME}/src:${APP_HOME}/src/submodules/aidata
 WORKDIR $APP_HOME
 COPY . . 
 WORKDIR $APP_HOME/src/submodules
-RUN git clone https://${GITHUB_TOKEN}@github.com/mbari-org/aidata
+RUN git clone https://${GH_TOKEN}@github.com/mbari-org/aidata
 ENV HF_HOME=/tmp/transformers_cache
 
 WORKDIR $APP_HOME
@@ -45,7 +46,6 @@ RUN python3 -m pip install --upgrade pip && \
 
 # run the FastAPI server
 WORKDIR $APP_HOME/src/app
-ENV PORT=80
 EXPOSE ${PORT}
 ENTRYPOINT ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port ${PORT} "]
 

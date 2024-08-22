@@ -6,6 +6,8 @@ LABEL vendor="MBARI"
 LABEL maintainer="Danelle Cline dcline@mbari.org"
 LABEL license="Apache License 2.0"
 
+ARG PORT=80
+ARG GH_TOKEN
 ARG IMAGE_URI=mbari/fastapi-vss
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -26,26 +28,29 @@ RUN apt update -y && apt install -y software-properties-common && \
     && apt-get clean
 
 
-ARG APP_DIR=/app
 WORKDIR $APP_DIR
 
 ## setup virtualenv
+ENV APP_HOME=/app
 RUN pip install virtualenv
 RUN virtualenv $APP_DIR/env -p python3.12
-ENV VIRTUAL_ENV $APP_DIR/env
-ENV PATH $APP_DIR/env/bin:$PATH
+ENV VIRTUAL_ENV $APP_HOME/env
+ENV PATH $APP_HOME/env/bin:$PATH
+ENV PYTHONPATH=${APP_HOME}/src:${APP_HOME}/src/submodules/aidata
 
-# install requirements and copy source
-ENV PYTHONPATH=$APP_DIR/src
-WORKDIR $APP_DIR/src/app
-COPY ./src/requirements.txt $APP_DIR/src/requirements.txt
-COPY ./src/app $APP_DIR/src/app
-RUN pip install --no-cache-dir --upgrade -r $APP_DIR/src/requirements.txt
+WORKDIR $APP_HOME
+COPY . .
+WORKDIR $APP_HOME/src/submodules
+RUN git clone https://${GH_TOKEN}@github.com/mbari-org/aidata
+ENV HF_HOME=/tmp/transformers_cache
 
-RUN chmod a+rwx -R $APP_DIR
+WORKDIR $APP_HOME
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install -r src/requirements.txt && \
+    python3 -m pip install -r src/submodules/aidata/requirements.txt
 
 # run the FastAPI server
-EXPOSE 80
-ENTRYPOINT ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
-
+WORKDIR $APP_HOME/src/app
+EXPOSE ${PORT}
+ENTRYPOINT ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port ${PORT} "]
 
