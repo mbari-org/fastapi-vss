@@ -1,5 +1,7 @@
 #!/usr/bin/env just --justfile
 
+set dotenv-required
+
 # Source the .env file
 set dotenv-load := true
 
@@ -13,6 +15,7 @@ install:
     python -m pip install --upgrade pip
     git submodule update --init --recursive
     python -m pip install -r src/submodules/requirements.txt
+    python -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
 
 # Update the conda environment. Run this command after checking out any code changes
 update:
@@ -47,13 +50,17 @@ run-server-prod:
 
 # Build the Docker image
 build-docker:
-    docker build -t fastapi-app .
+    docker build --build-arg GH_TOKEN=$GH_TOKEN -t fastapi-app .
 
 build-docker-no-cache:
-    docker build --no-cache -t fastapi-app .
+    docker build --build-arg GH_TOKEN=$GH_TOKEN --no-cache -t fastapi-app .
 
 build-cuda-docker:
-    docker build -f Dockerfile.cuda -t fastapi-app .
+    docker build --build-arg GH_TOKEN=$GH_TOKEN -f Dockerfile.cuda -t fastapi-app .
+
+run-docker:
+    echo "FastAPI server running at http://localhost:8001"
+    docker run -p "8001:80" fastapi-app
 
 # Default recipe
 default:

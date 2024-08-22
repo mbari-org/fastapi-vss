@@ -5,3 +5,4 @@ environment.yml
 Dockerfile*
 *.md
 bin/
+src/submodules/
