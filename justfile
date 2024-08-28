@@ -35,7 +35,7 @@ run-server: kill-uvicorn
     #!/usr/bin/env bash
     echo "FastAPI server running at http://localhost:8002"
     echo "FastAPI docs running at http://localhost:8002/docs"
-    export PYTHONPATH=$PWD/src
+    export PYTHONPATH=$PWD/src:$PWD/src/submodules/aidata
     cd src/app && conda run -n fastapi-vss --no-capture-output uvicorn main:app --port 8002 --reload
 
 run-server-prod:
@@ -49,13 +49,13 @@ run-server-prod:
 
 # Build the Docker image
 build-docker:
-    docker build --build-arg GH_TOKEN=$GH_TOKEN -t mbari/fastapi-app .
+    docker build -t mbari/fastapi-app .
 
 build-docker-no-cache:
-    docker build --build-arg GH_TOKEN=$GH_TOKEN --no-cache -t mbari/fastapi-app .
+    docker build --no-cache -t mbari/fastapi-app .
 
 build-cuda-docker:
-    docker build --build-arg GH_TOKEN=$GH_TOKEN -f Dockerfile.cuda -t mbari/fastapi-app .
+    docker build -f Dockerfile.cuda -t mbari/fastapi-app .
 
 run-docker:
     echo "FastAPI server running at http://localhost:8001"

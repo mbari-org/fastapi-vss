@@ -23,10 +23,10 @@ jobs:
         if: steps.semantic.outputs.released == 'true'
         run: |
           export RELEASE_VERSION=$(echo ${{ steps.semantic.outputs.tag }} | cut -c 2-)-cuda124
-          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-          docker buildx create --name mybuilder --platform linux/amd64 --use
-          docker buildx build --push --platform linux/amd64 \
-          -t mbari/fastapi-vss:$RELEASE_VERSION \
-          --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION \
-          --build-arg GH_TOKEN=${{ secrets.GH_TOKEN }} \
-          -f Dockerfile.cuda .
+#          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+#          docker buildx create --name mybuilder --platform linux/amd64 --use
+#          docker buildx build --push --platform linux/amd64 \
+#          -t mbari/fastapi-vss:$RELEASE_VERSION \
+#          --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION \
+#          --build-arg GH_TOKEN=${{ secrets.GH_TOKEN }} \
+#          -f Dockerfile.cuda .

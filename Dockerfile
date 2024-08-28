@@ -1,7 +1,7 @@
 # ================================================================
 #  Docker image for fastapi-vss
 #  ================================================================
-FROM ubuntu:22.04
+FROM mbari/aidata:1.12.2
 
 LABEL vendor="MBARI"
 LABEL maintainer="dcline@mbari.org"
@@ -26,15 +26,13 @@ RUN apt-get update && apt-get install -y \
 ENV APP_HOME=/app
 WORKDIR ${APP_HOME}
 ADD . ${APP_HOME}
-ENV PYTHONPATH=${APP_HOME}/src:${APP_HOME}/src/submodules/aidata
+ENV PYTHONPATH=${APP_HOME}/src:${APP_HOME}
 WORKDIR $APP_HOME/src/submodules
 RUN git clone https://${GH_TOKEN}@github.com/mbari-org/aidata
 ENV HF_HOME=/tmp/transformers_cache
 
 WORKDIR ${APP_HOME}
-RUN python3.11 -m pip install -r src/requirements.txt && \
-    python3.11 -m pip install -r src/submodules/aidata/requirements.txt && \
-    python3.11 -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
+RUN python3.11 -m pip install -r src/requirements.txt
 
 RUN chmod a+rwx -R /app
 

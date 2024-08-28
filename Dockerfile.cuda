@@ -1,13 +1,12 @@
 # ================================================================
 #  Docker image for fastapi-vss (CUDA enabled)
 #  ================================================================
-FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+FROM mbari/aidata:1.12.2-cuda124
 
 LABEL vendor="MBARI"
 LABEL maintainer="dcline@mbari.org"
 LABEL license="Apache License 2.0"
 
-ARG GH_TOKEN
 ARG GIT_VERSION=latest
 ARG IMAGE_URI=mbari/fastapi-vss:${GIT_VERSION}
 
@@ -27,7 +26,7 @@ RUN apt-get update && apt-get install -y \
 ENV APP_HOME=/app
 ENV VIRTUAL_ENV $APP_HOME/env
 ENV PATH $APP_HOME/env/bin:$PATH
-ENV PYTHONPATH=${APP_HOME}/src:${APP_HOME}/src/submodules/aidata
+ENV PYTHONPATH=${APP_HOME}/src:${APP_HOME}
 
 WORKDIR $APP_HOME
 COPY . . 
@@ -38,7 +37,6 @@ ENV HF_HOME=/tmp/transformers_cache
 WORKDIR $APP_HOME
 RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install -r src/requirements.txt && \
-    python3 -m pip install -r src/submodules/aidata/requirements.txt && \
     python3 -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 && \
     python3 -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
 
