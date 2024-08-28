@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-ENV APP_HOME /app
+ENV APP_HOME=/app
 WORKDIR ${APP_HOME}
 ADD . ${APP_HOME}
 ENV PYTHONPATH=${APP_HOME}/src:${APP_HOME}/src/submodules/aidata
@@ -40,5 +40,6 @@ RUN chmod a+rwx -R /app
 
 # run the FastAPI server
 WORKDIR $APP_HOME/src/app
+EXPOSE 80
 ENTRYPOINT ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port 80 "]
 

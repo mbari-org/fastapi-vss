@@ -12,16 +12,16 @@ list:
 # Setup the environment
 install:
     conda env create -f environment.yml
-    python -m pip install --upgrade pip
     git submodule update --init --recursive
-    python -m pip install -r src/submodules/requirements.txt
+    python -m pip install -r src/submodules/aidata/requirements.txt
     python -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
 
 # Update the conda environment. Run this command after checking out any code changes
 update:
     git submodule update --init --recursive
-    conda env update --file environment.yml --prune
     python -m pip install -r src/submodules/aidata/requirements.txt
+    conda env update --file environment.yml --prune
+    python -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
 
 # Kill existing uvicorn processes
 kill-uvicorn:
@@ -39,28 +39,27 @@ run-server: kill-uvicorn
     cd src/app && conda run -n fastapi-vss --no-capture-output uvicorn main:app --port 8002 --reload
 
 run-server-prod:
-    gitver=$(git describe --tags --always)
-    GIT_VERSION=$gitver COMPOSE_PROJECT_NAME=fastapi-vss \
-    docker-compose -f compose.yml up -d \
+    #!/usr/bin/env bash
+    tag=$(git describe --tags --always)
+    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss \
+    docker-compose -f compose.yml up \
     --build \
     --force-recreate \
-    --runtime nvidia \
-    --gpus all \
-    --no-deps -f Dockerfile.cuda .
+    --no-deps
 
 # Build the Docker image
 build-docker:
-    docker build --build-arg GH_TOKEN=$GH_TOKEN -t fastapi-app .
+    docker build --build-arg GH_TOKEN=$GH_TOKEN -t mbari/fastapi-app .
 
 build-docker-no-cache:
-    docker build --build-arg GH_TOKEN=$GH_TOKEN --no-cache -t fastapi-app .
+    docker build --build-arg GH_TOKEN=$GH_TOKEN --no-cache -t mbari/fastapi-app .
 
 build-cuda-docker:
-    docker build --build-arg GH_TOKEN=$GH_TOKEN -f Dockerfile.cuda -t fastapi-app .
+    docker build --build-arg GH_TOKEN=$GH_TOKEN -f Dockerfile.cuda -t mbari/fastapi-app .
 
 run-docker:
     echo "FastAPI server running at http://localhost:8001"
-    docker run -p "8001:80" fastapi-app
+    docker run -p "8001:80" mbari/fastapi-app
 
 # Default recipe
 default:

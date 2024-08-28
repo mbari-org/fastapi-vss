@@ -17,23 +17,56 @@ services:
     user: "$MLDEVOPS_GID:$MLDEVOPS_UID"
     restart: always
   redis-uav:
-    image: redis
+    image: redis/redis-stack-server
     container_name: redis-uav
     ports:
-      - "6380:6379"
+      - "6379:6379"
     volumes:
       - redis-uav-data:/data
     restart: always
     command: redis-server --appendonly yes
     networks:
       - vss
-  redis-cfe:
-    image: redis
-    container_name: redis-cfe
+  redis-i2map:
+    image: redis/redis-stack-server
+    container_name: redis-i2map
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-i2map-data:/data
+    restart: always
+    command: redis-server --appendonly yes
+    networks:
+      - vss
+  redis-bio:
+    image: redis/redis-stack-server
+    container_name: redis-bio
     ports:
       - "6381:6379"
     volumes:
+      - redis-bio-data:/data
+    restart: always
+    command: redis-server --appendonly yes
+    networks:
+      - vss
+  redis-cfe:
+    image: redis/redis-stack-server
+    container_name: redis-cfe
+    ports:
+      - "6382:6379"
+    volumes:
       - redis-cfe-data:/data
+    restart: always
+    command: redis-server --appendonly yes
+    networks:
+      - vss
+  redis-compas:
+    image: redis/redis-stack-server
+    container_name: redis-compas
+    ports:
+      - "6383:6379"
+    volumes:
+      - redis-compas-data:/data
     restart: always
     command: redis-server --appendonly yes
     networks:
@@ -42,4 +75,7 @@ volumes:
     scratch:
     redis-uav-data:
     redis-cfe-data:
+    redis-bio-data:
+    redis-i2map-data:
+    redis-compas-data:
 
