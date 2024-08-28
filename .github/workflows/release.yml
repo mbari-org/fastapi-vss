@@ -28,5 +28,5 @@ jobs:
           docker buildx build --push --platform linux/amd64 \
           -t mbari/fastapi-vss:$RELEASE_VERSION \
           --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION \
-          --build-arg GH_TOKEN=$GH_TOKEN \
+          --build-arg GH_TOKEN=${{ secrets.GH_TOKEN }} \
           -f Dockerfile.cuda .
