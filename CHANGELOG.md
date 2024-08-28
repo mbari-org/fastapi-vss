@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.1.4 (2024-08-28)
+
+### Fix
+
+* fix: trigger CUDA release with updated docker build ([`dfb6838`](https://github.com/mbari-org/fastapi-vss/commit/dfb68381d8a7ea445394e2dc53aae11ea1cd6c95))
+
 ## v0.1.3 (2024-08-28)
 
 ### Fix
