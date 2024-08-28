@@ -10,39 +10,18 @@ LABEL license="Apache License 2.0"
 ARG GIT_VERSION=latest
 ARG IMAGE_URI=mbari/fastapi-vss:${GIT_VERSION}
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
-    git \
-    wget \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    && rm -rf /var/lib/apt/lists/*
-
 ENV APP_HOME=/app
-ENV VIRTUAL_ENV $APP_HOME/env
-ENV PATH $APP_HOME/env/bin:$PATH
 ENV PYTHONPATH=${APP_HOME}/src:${APP_HOME}
 
 WORKDIR $APP_HOME
-COPY . . 
-WORKDIR $APP_HOME/src/submodules
-RUN git clone https://${GH_TOKEN}@github.com/mbari-org/aidata
+COPY . .
 ENV HF_HOME=/tmp/transformers_cache
 
 WORKDIR $APP_HOME
-RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install -r src/requirements.txt && \
-    python3 -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 && \
+RUN python3 -m pip install -r src/requirements.txt && \
     python3 -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
 
 # run the FastAPI server
 WORKDIR $APP_HOME/src/app
 EXPOSE 80
 ENTRYPOINT ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port 80 "]
-
-

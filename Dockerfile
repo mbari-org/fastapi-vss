@@ -7,34 +7,19 @@ LABEL vendor="MBARI"
 LABEL maintainer="dcline@mbari.org"
 LABEL license="Apache License 2.0"
 
-ARG GH_TOKEN
 ARG GIT_VERSION=latest
-ARG IMAGE_URI=mbari/aidata:${GIT_VERSION}
-
-RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    && apt-get update && apt-get install -y \
-    git \
-    python3.11 \
-    python3.11-dev \
-    python3.11-distutils \
-    python3-pip \
-    curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ARG IMAGE_URI=mbari/fastapi-vss:${GIT_VERSION}
 
 ENV APP_HOME=/app
-WORKDIR ${APP_HOME}
-ADD . ${APP_HOME}
 ENV PYTHONPATH=${APP_HOME}/src:${APP_HOME}
-WORKDIR $APP_HOME/src/submodules
-RUN git clone https://${GH_TOKEN}@github.com/mbari-org/aidata
+
+WORKDIR $APP_HOME
+COPY . .
 ENV HF_HOME=/tmp/transformers_cache
 
-WORKDIR ${APP_HOME}
-RUN python3.11 -m pip install -r src/requirements.txt
-
-RUN chmod a+rwx -R /app
+WORKDIR $APP_HOME
+RUN python3 -m pip install -r src/requirements.txt && \
+    python3 -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
 
 # run the FastAPI server
 WORKDIR $APP_HOME/src/app
