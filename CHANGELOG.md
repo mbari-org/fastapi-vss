@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.1.3 (2024-08-28)
+
+### Fix
+
+* fix: add missing dependency ([`5f0c861`](https://github.com/mbari-org/fastapi-vss/commit/5f0c86100caabc7f2e771a9f7dde4e4e87e9eca2))
+
+### Unknown
+
+* Update README.md ([`1a1b260`](https://github.com/mbari-org/fastapi-vss/commit/1a1b2609f4c663adb8bbc9b5c6e4b59c40fded7e))
+
 ## v0.1.2 (2024-08-22)
 
 ### Fix
