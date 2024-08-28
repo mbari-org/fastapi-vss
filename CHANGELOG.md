@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.2.0 (2024-08-28)
+
+### Feature
+
+* feat: change to external config_path via environment variable CONFIG_PATH ([`352dc6b`](https://github.com/mbari-org/fastapi-vss/commit/352dc6bddfa5fa4b3fe0656324ef63bd53d05251))
+
 ## v0.1.4 (2024-08-28)
 
 ### Fix
