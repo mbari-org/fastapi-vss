@@ -24,25 +24,20 @@ BATCH_SIZE = 8
 # Path to store temporary files
 temp_path = Path(tempfile.gettempdir()) / 'fastapi-vss'
 
-config_path = os.getenv("CONFIG_PATH")
-
-if not config_path:
+# Required environment variables REDIS_PASSWD and CONFIG_PATH
+dotenv.load_dotenv()
+if not os.getenv("REDIS_PASSWD"):
+    raise Exception("REDIS_PASSWD environment variable not set")
+if not os.getenv("CONFIG_PATH"):
     raise Exception("CONFIG_PATH environment variable not set")
 
-if not Path(config_path).exists():
-    raise FileNotFoundError(f"Could not find {config_path}")
+config_path = Path(os.getenv("CONFIG_PATH"))
 
 def init_config() -> dict:
     """
     Initialize the configuration for the application
     :return: Dictionary of configuration settings keyed by project name
     """
-    env_path = Path(__file__).resolve().parent.parent.parent.parent / ".env"
-    if env_path.exists():
-        dotenv.load_dotenv(env_path)
-    if not env_path.exists():
-        raise Exception(f"No .env file found in {env_path}")
-
     config = {}
     # Read the yaml configuration files for each project
     for yaml_path in config_path.rglob('*.yml'):
