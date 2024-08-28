@@ -12,7 +12,7 @@ import os
 import dotenv
 
 from app.logger import info
-from submodules.aidata.aidata.predictors.process_vits import ViTWrapper
+from aidata.predictors.process_vits import ViTWrapper
 
 """
 Initialize the configuration for the application
@@ -24,8 +24,13 @@ BATCH_SIZE = 8
 # Path to store temporary files
 temp_path = Path(tempfile.gettempdir()) / 'fastapi-vss'
 
-config_path = Path(__file__).parent.parent.parent / 'submodules' / 'aidata' /  'aidata' / 'config'
+config_path = os.getenv("CONFIG_PATH")
 
+if not config_path:
+    raise Exception("CONFIG_PATH environment variable not set")
+
+if not Path(config_path).exists():
+    raise FileNotFoundError(f"Could not find {config_path}")
 
 def init_config() -> dict:
     """
