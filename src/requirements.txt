@@ -6,3 +6,5 @@ Pillow
 pydantic~=2.8.2
 pyyaml~=6.0.1
 numpy
+async-timeout
+redis==5.0.7
