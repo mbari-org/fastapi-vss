@@ -38,24 +38,22 @@ run-server: kill-uvicorn
     export PYTHONPATH=$PWD/src:$PWD/src/submodules/aidata
     cd src/app && conda run -n fastapi-vss --no-capture-output uvicorn main:app --port 8002 --reload
 
-run-server-prod:
+run-server-prod: build-docker
     #!/usr/bin/env bash
     tag=$(git describe --tags --always)
-    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss \
-    docker-compose -f compose.yml up \
-    --build \
-    --force-recreate \
-    --no-deps
+    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.yml down --remove-orphans && \
+    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.yml up -d
 
 # Build the Docker image
 build-docker:
-    docker build -t mbari/fastapi-app .
+    #!/usr/bin/env bash
+    tag=$(git describe --tags --always)
+    docker build -t mbari/fastapi-app:$tag .
 
 build-docker-no-cache:
-    docker build --no-cache -t mbari/fastapi-app .
-
-build-cuda-docker:
-    docker build -f Dockerfile.cuda -t mbari/fastapi-app .
+    #!/usr/bin/env bash
+    tag=$(git describe --tags --always)
+    docker build --no-cache -t mbari/fastapi-app:$tag .
 
 run-docker:
     echo "FastAPI server running at http://localhost:8001"

@@ -11,71 +11,36 @@ services:
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://127.0.0.1:8000/health" ]
     env_file:
-      - ./.env
+      - .env
     ports:
-      - "8001:80"
-    user: "$MLDEVOPS_GID:$MLDEVOPS_UID"
+      - "8000:80"
+    environment:
+      - CONFIG_PATH=/config
+    volumes:
+      - ./config:/config
+    user: ${MLDEVOPS_GID}:${MLDEVOPS_UID}
     restart: always
-  redis-uav:
+    depends_on:
+      - redis
+    networks:
+      - vss
+  redis:
+    env_file:
+      - .env
+    command:
+      - /bin/sh
+      - -c
+      - redis-server --requirepass "$${REDIS_PASSWD:?REDIS_PASSWD variable is not set}"
     image: redis/redis-stack-server
-    container_name: redis-uav
+    container_name: redis
     ports:
       - "6379:6379"
     volumes:
-      - redis-uav-data:/data
+      - redis-data:/data
     restart: always
-    command: redis-server --appendonly yes
-    networks:
-      - vss
-  redis-i2map:
-    image: redis/redis-stack-server
-    container_name: redis-i2map
-    ports:
-      - "6380:6379"
-    volumes:
-      - redis-i2map-data:/data
-    restart: always
-    command: redis-server --appendonly yes
-    networks:
-      - vss
-  redis-bio:
-    image: redis/redis-stack-server
-    container_name: redis-bio
-    ports:
-      - "6381:6379"
-    volumes:
-      - redis-bio-data:/data
-    restart: always
-    command: redis-server --appendonly yes
-    networks:
-      - vss
-  redis-cfe:
-    image: redis/redis-stack-server
-    container_name: redis-cfe
-    ports:
-      - "6382:6379"
-    volumes:
-      - redis-cfe-data:/data
-    restart: always
-    command: redis-server --appendonly yes
-    networks:
-      - vss
-  redis-compas:
-    image: redis/redis-stack-server
-    container_name: redis-compas
-    ports:
-      - "6383:6379"
-    volumes:
-      - redis-compas-data:/data
-    restart: always
-    command: redis-server --appendonly yes
     networks:
       - vss
 volumes:
-    scratch:
-    redis-uav-data:
-    redis-cfe-data:
-    redis-bio-data:
-    redis-i2map-data:
-    redis-compas-data:
-
+  redis-data:
+networks:
+  vss:
