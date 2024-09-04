@@ -40,6 +40,18 @@ async def root():
 async def get_projects():
     return {"projects": list(global_config.keys())}
 
+@app.post("/ids/{project}", status_code=status.HTTP_200_OK)
+async def get_ids(project: str = DEFAULT_PROJECT):
+    # Check if the project name is in the config
+    if project not in global_config.keys():
+        return {"error": f"Invalid project name {project}"}
+
+    v = global_config[project]['v']
+    try:
+        classes, ids = v.get_ids()
+        return {"ids": ids, "classes": classes}
+    except Exception as e:
+        return {"error": f"Error getting ids: {e}"}
 
 @app.post("/knn/{top_n}/{project}", status_code=status.HTTP_200_OK)
 async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str = DEFAULT_PROJECT):
@@ -56,5 +68,8 @@ async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str 
 
     v = global_config[project]['v']
     images = [f.file for f in files]
-    predictions, scores = v.predict(images, top_n)
-    return {"predictions": predictions, "scores": scores}
+    try:
+        predictions, scores, ids = v.predict(images, top_n)
+        return {"predictions": predictions, "scores": scores, "ids": ids}
+    except Exception as e:
+        return {"error": f"Error predicting images: {e}"}

@@ -1,7 +1,7 @@
 # ================================================================
 #  Docker image for fastapi-vss
 #  ================================================================
-FROM mbari/aidata:1.12.2
+FROM mbari/aidata:1.17.0
 
 LABEL vendor="MBARI"
 LABEL maintainer="dcline@mbari.org"
