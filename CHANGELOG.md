@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.2.1 (2024-09-04)
+
+### Performance
+
+* perf: bump to better indexing ([`7beb4b7`](https://github.com/mbari-org/fastapi-vss/commit/7beb4b72a08186ca89f540262f054904509db9c0))
+
 ## v0.2.0 (2024-08-28)
 
 ### Feature
