@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.3.0 (2024-09-06)
+
+### Feature
+
+* feat: add support for different models ([`53743ff`](https://github.com/mbari-org/fastapi-vss/commit/53743ff9b01a8bc0d038943ab999fc2f68f4fb3d))
+
 ## v0.2.1 (2024-09-04)
 
 ### Performance
