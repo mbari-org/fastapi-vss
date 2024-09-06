@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.3.1 (2024-09-06)
+
+### Fix
+
+* fix: fix typo ([`b5c9735`](https://github.com/mbari-org/fastapi-vss/commit/b5c9735dbde1b34276b3799fbdb8338ce44fc9e9))
+
 ## v0.3.0 (2024-09-06)
 
 ### Feature
