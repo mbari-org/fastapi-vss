@@ -51,11 +51,12 @@ def init_config() -> dict:
             info(data)
             redis_host = data['redis']['host']
             redis_port = data['redis']['port']
+            model = data['vs']['model']
             password = os.getenv("REDIS_PASSWD")
 
             info(f"Connecting to redis at {redis_host}:{redis_port}")
             r = redis.Redis(host=redis_host, port=redis_port, password=password)
-            v = ViTWrapper(r, "cpu", False, BATCH_SIZE)
+            v = ViTWrapper(r, device="cpu", model_name=model, reset=False, batch_size=BATCH_SIZE)
 
             project = data['tator']['project']
 

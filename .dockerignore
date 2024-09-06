@@ -8,3 +8,5 @@ Dockerfile*
 *.md
 bin/
 src/submodules
+.github/
+.gitmodules
