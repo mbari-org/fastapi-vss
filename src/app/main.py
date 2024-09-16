@@ -18,7 +18,7 @@ info(f"Starting Fast-VSS API version {__version__}")
 
 app = FastAPI(
     title=f"Fast-VSS API version {__version__}",
-    description=f"""Run visual similarity search using foundational Vision Transformer (ViT) models . Version {__version__}""",
+    description=f"""Run vector similarity search using foundational Vision Transformer (ViT) models . Version {__version__}""",
     version=__version__,
 )
 
