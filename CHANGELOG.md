@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.4.1 (2024-09-16)
+
+### Fix
+
+* fix: bump version and updated docs with latest ui screen capture ([`2399296`](https://github.com/mbari-org/fastapi-vss/commit/23992969ce70c7d819bb7a3e4689f4f3f567ee23))
+
 ## v0.4.0 (2024-09-16)
 
 ### Feature
