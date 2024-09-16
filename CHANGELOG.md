@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.4.0 (2024-09-16)
+
+### Feature
+
+* feat: switch to vss project config name ([`be4d0bb`](https://github.com/mbari-org/fastapi-vss/commit/be4d0bb669711b907cee792f47659b448a056728))
+
 ## v0.3.1 (2024-09-06)
 
 ### Fix
