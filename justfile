@@ -70,25 +70,45 @@ default:
 test_all_ids:
     #!/usr/bin/env bash
     curl -X 'POST' \
-      'http://localhost:8002/ids/i2map' \
+      'http://localhost:8002/ids/cfe' \
       -H 'accept: application/json' \
       -d ''
+
+process_atolla:
+    #!/usr/bin/env bash
+    cd ./tests/images/atolla
+    curl -X 'POST' \
+     'http:/localhost:8002/knn/3/i2map' \
+     -H 'accept: application/json' \
+     -H 'Content-Type: multipart/form-data' \
+     -F 'files=@atolla1.png;type=image/png'
+    curl -X 'POST' \
+     'http:/localhost:8002/knn/3/i2map' \
+     -H 'accept: application/json' \
+     -H 'Content-Type: multipart/form-data' \
+     -F 'files=@atolla2.png;type=image/png'
+    curl -X 'POST' \
+     'http:/localhost:8002/knn/3/i2map' \
+     -H 'accept: application/json' \
+     -H 'Content-Type: multipart/form-data' \
+     -F 'files=@atolla3.png;type=image/png'
+
 
 process_copepods:
     #!/usr/bin/env bash
     cd ./tests/images/copepod
     curl -X 'POST' \
-     'http:/localhost:8002/knn/3/i2map' \
+     'http:/localhost:8002/knn/3/902111-CFE' \
      -H 'accept: application/json' \
      -H 'Content-Type: multipart/form-data' \
      -F 'files=@copepod1.png;type=image/png'
     curl -X 'POST' \
-     'http:/localhost:8002/knn/3/i2map' \
+     'http:/localhost:8002/knn/3/902111-CFE' \
      -H 'accept: application/json' \
      -H 'Content-Type: multipart/form-data' \
      -F 'files=@copepod2.png;type=image/png'
     curl -X 'POST' \
-     'http:/localhost:8002/knn/3/i2map' \
+     'http:/localhost:8002/knn/3/902111-CFE' \
      -H 'accept: application/json' \
      -H 'Content-Type: multipart/form-data' \
      -F 'files=@copepod3.png;type=image/png'
