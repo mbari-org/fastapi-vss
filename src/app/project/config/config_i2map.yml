@@ -1,0 +1,13 @@
+# Config file for i2map project
+redis:
+  host: "doris.shore.mbari.org"
+  port: 6380
+
+vss:
+  threshold: 0.9
+  model: "google/vit-base-patch16-224"
+  project: "i2map"
+
+tator:
+  project: "901103-biodiversity"
+  host: "mantis.shore.mbari.org"
