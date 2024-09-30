@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.4.4 (2024-09-30)
+
+### Performance
+
+* perf: added garbage collection, increase batch size and multiple workers for higher throughput ([`bad00b9`](https://github.com/mbari-org/fastapi-vss/commit/bad00b9403738d64fa70e1b7e14aedb02d9382ad))
+
 ## v0.4.3 (2024-09-30)
 
 ## v0.4.2 (2024-09-30)
