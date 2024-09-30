@@ -55,20 +55,20 @@ async def get_ids(project: str = DEFAULT_PROJECT):
 
 @app.post("/knn/{top_n}/{project}", status_code=status.HTTP_200_OK)
 async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str = DEFAULT_PROJECT):
-    info(f"Predicting {len(files)} for top {top_n} in project {project}")
-    if len(files) > BATCH_SIZE:
-        return {"error": f"Images should be less than batch size {BATCH_SIZE}"}
-
-    if top_n == 0:
-        return {"error": f"Please provide a valid top_n value greater than 0"}
-
-    # Check if the project name is in the config
-    if project not in global_config.keys():
-        return {"error": f"Invalid project name {project}"}
-
-    v = global_config[project]['v']
-    images = [f.file for f in files]
     try:
+        info(f"Predicting {len(files)} for top {top_n} in project {project}")
+        if len(files) > BATCH_SIZE:
+            return {"error": f"Images should be less than batch size {BATCH_SIZE}"}
+
+        if top_n == 0:
+            return {"error": f"Please provide a valid top_n value greater than 0"}
+
+        # Check if the project name is in the config
+        if project not in global_config.keys():
+            return {"error": f"Invalid project name {project}"}
+
+        v = global_config[project]['v']
+        images = [f.file for f in files]
         predictions, scores, ids = v.predict(images, top_n)
         return {"predictions": predictions, "scores": scores, "ids": ids}
     except Exception as e:
