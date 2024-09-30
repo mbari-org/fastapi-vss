@@ -1,10 +1,16 @@
 # CHANGELOG
 
+## v0.4.3 (2024-09-30)
+
 ## v0.4.2 (2024-09-30)
 
 ### Fix
 
 * fix: handle any prediction exception ([`64e8f96`](https://github.com/mbari-org/fastapi-vss/commit/64e8f96ef4a24fdb9acb356efd6f1d6f7287df6e))
+
+### Performance
+
+* perf: default to cuda ([`b8e14a5`](https://github.com/mbari-org/fastapi-vss/commit/b8e14a53263723381446b71136c7768462b5036c))
 
 ## v0.4.1 (2024-09-16)
 
