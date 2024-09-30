@@ -19,7 +19,7 @@ Initialize the configuration for the application
 """
 
 # Number of images to process in a batch
-BATCH_SIZE = 8
+BATCH_SIZE = 32
 
 # Path to store temporary files
 temp_path = Path(tempfile.gettempdir()) / 'fastapi-vss'
@@ -57,6 +57,7 @@ def init_config() -> dict:
             info(f"Connecting to redis at {redis_host}:{redis_port}")
             r = redis.Redis(host=redis_host, port=redis_port, password=password)
             v = ViTWrapper(r, device="cuda:0", model_name=model, reset=False, batch_size=BATCH_SIZE)
+            v.model.eval()
 
             project = data['vss']['project']
 

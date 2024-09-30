@@ -1,7 +1,7 @@
 # ================================================================
 #  Docker image for fastapi-vss (CUDA enabled)
 #  ================================================================
-FROM mbari/aidata:1.19.0-cuda124
+FROM mbari/aidata:latest-cuda124
 
 LABEL vendor="MBARI"
 LABEL maintainer="dcline@mbari.org"
@@ -24,4 +24,4 @@ RUN python3 -m pip install -r src/requirements.txt && \
 # run the FastAPI server
 WORKDIR $APP_HOME/src/app
 EXPOSE 80
-ENTRYPOINT ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port 80 "]
+ENTRYPOINT ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port 80 --workers 4"]

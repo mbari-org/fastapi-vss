@@ -2,6 +2,8 @@
 # Filename: app/main.py
 # Description: Process images with foundational Vision Transformer (ViT) models
 import os
+import torch
+import gc
 from pathlib import Path
 
 from fastapi import FastAPI, status, File, UploadFile
@@ -70,6 +72,9 @@ async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str 
         v = global_config[project]['v']
         images = [f.file for f in files]
         predictions, scores, ids = v.predict(images, top_n)
+        torch.cuda.empty_cache()
+        gc.collect()
+        del images
         return {"predictions": predictions, "scores": scores, "ids": ids}
     except Exception as e:
         return {"error": f"Error predicting images: {e}"}

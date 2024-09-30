@@ -14,4 +14,5 @@ pkill -f "uvicorn main:app"
 
 echo "FastAPI server running at http://localhost:8002"
 echo "FastAPI docs running at http://localhost:8002/docs"
+export CONFIG_PATH=/u/mldevops/code/fastapi-vss/config
 cd $BASE_DIR/src/app && uvicorn main:app --port 8002 --reload
