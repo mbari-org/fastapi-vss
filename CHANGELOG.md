@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.4.2 (2024-09-30)
+
+### Fix
+
+* fix: handle any prediction exception ([`64e8f96`](https://github.com/mbari-org/fastapi-vss/commit/64e8f96ef4a24fdb9acb356efd6f1d6f7287df6e))
+
 ## v0.4.1 (2024-09-16)
 
 ### Fix
