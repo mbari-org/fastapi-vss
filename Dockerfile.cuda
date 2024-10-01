@@ -7,6 +7,7 @@ LABEL vendor="MBARI"
 LABEL maintainer="dcline@mbari.org"
 LABEL license="Apache License 2.0"
 
+ARG NUM_WORKERS=1
 ARG GIT_VERSION=latest
 ARG IMAGE_URI=mbari/fastapi-vss:${GIT_VERSION}
 
@@ -24,4 +25,4 @@ RUN python3 -m pip install -r src/requirements.txt && \
 # run the FastAPI server
 WORKDIR $APP_HOME/src/app
 EXPOSE 80
-ENTRYPOINT ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port 80 --workers 4"]
+ENTRYPOINT ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port 80 --workers ${NUM_WORKERS}"]
