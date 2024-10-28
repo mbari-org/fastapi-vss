@@ -6,7 +6,7 @@
 This accelerates machine learning workflows that require vector similarity search using foundational models.
 
 --- 
-![](docs/imgs/restwebui.png)
+![](https://raw.githubusercontent.com/mbari-org/fastapi-vss/main/docs/imgs//restwebui.png)
 ---
 
 ## Related work
