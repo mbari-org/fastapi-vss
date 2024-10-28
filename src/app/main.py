@@ -4,6 +4,7 @@
 import os
 import torch
 import gc
+import pynvml
 from pathlib import Path
 
 from fastapi import FastAPI, status, File, UploadFile
@@ -32,11 +33,22 @@ if len(global_config) == 0:
 
 DEFAULT_PROJECT = list(global_config.keys())[0]
 
+GPU_AVAILABLE = False
+if torch.cuda.is_available():
+    pynvml.nvmlInit()
+    GPU_AVAILABLE = True
 
 @app.get("/")
 async def root():
     return {"message": f"Welcome to Fast-VSS API version {__version__}"}
 
+@app.get("/gpu-memory")
+def gpu_memory():
+    if not GPU_AVAILABLE:
+        return {"error": "No GPU available"}
+    handle = pynvml.nvmlDeviceGetHandleByIndex(0)  # GPU 0
+    mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+    return {"used_memory": mem_info.used, "total_memory": mem_info.total}
 
 @app.get("/projects")
 async def get_projects():

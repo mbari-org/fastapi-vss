@@ -3,7 +3,7 @@
 
 **fastapi-vss** A RESTful API for vector similarity search.  It uses the Python web framework [FastAPI](https://fastapi.tiangolo.com/). 
 
-This accelerates machine learning workflows that require visual similarity search using foundational models.
+This accelerates machine learning workflows that require vector similarity search using foundational models.
 
 --- 
 ![](docs/imgs/restwebui.png)
