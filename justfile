@@ -18,6 +18,7 @@ build-and-push:
     RELEASE_VERSION=${RELEASE_VERSION:1}
     docker buildx create --name mybuilder --platform linux/amd64,linux/arm64 --use
     docker buildx build --sbom=true --provenance=true --push --platform linux/amd64,linux/arm64 -t mbari/fastapi-vss:$RELEASE_VERSION --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION -f Dockerfile .
+    docker buildx build --sbom=true --provenance=true --push --platform linux/amd64,linux/arm64 -t mbari/fastapi-vss:$RELEASE_VERSION-cuda124 --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION -f Dockerfile.cuda .
 
 # Setup the environment
 install:
