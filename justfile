@@ -9,6 +9,16 @@ set dotenv-load := true
 list:
     @just --list --unsorted
 
+# Build the docker images for linux/amd64 and linux/arm64 and push to Docker Hub
+build-and-push:
+    #!/usr/bin/env bash
+    echo "Building and pushing the Docker image"
+    RELEASE_VERSION=$(git describe --tags --abbrev=0)
+    echo "Release version: $RELEASE_VERSION"
+    RELEASE_VERSION=${RELEASE_VERSION:1}
+    docker buildx create --name mybuilder --platform linux/amd64,linux/arm64 --use
+    docker buildx build --sbom=true --provenance=true --push --platform linux/amd64,linux/arm64 -t mbari/fastapi-vss:$RELEASE_VERSION --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION -f Dockerfile .
+
 # Setup the environment
 install:
     conda env create -f environment.yml
