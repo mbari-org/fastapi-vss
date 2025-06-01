@@ -16,20 +16,26 @@ build-and-push:
     RELEASE_VERSION=$(git describe --tags --abbrev=0)
     echo "Release version: $RELEASE_VERSION"
     RELEASE_VERSION=${RELEASE_VERSION:1}
+    docker pull mbari/aidata:1.53.0-cuda124
+    docker pull mbari/aidata:1.53.0
     docker buildx create --name mybuilder --platform linux/amd64,linux/arm64 --use
     docker buildx build --sbom=true --provenance=true --push --platform linux/amd64,linux/arm64 -t mbari/fastapi-vss:$RELEASE_VERSION --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION -f Dockerfile .
     docker buildx build --sbom=true --provenance=true --push --platform linux/amd64,linux/arm64 -t mbari/fastapi-vss:$RELEASE_VERSION-cuda124 --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION -f Dockerfile.cuda .
 
-# Setup the environment
+# Setup the environment for development
 install:
+    #!/usr/bin/env bash
     conda env create -f environment.yml
-    git clone --branch v1.16.0 https://github.com/mbari-org/aidata ./src/aidata
+    git clone --branch v1.53.0 https://github.com/mbari-org/aidata ./src/aidata
+    conda activate fastapi-vss
     python -m pip install -r src/aidata/requirements.txt
     python -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
 
-# Update the conda environment. Run this command after checking out any code changes
+# Update the conda development environment. Run this command after checking out any code changes
 update:
+    #!/usr/bin/env bash
     conda env update --file environment.yml --prune
+    conda activate fastapi-vss
     python -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
 
 # Kill existing uvicorn processes
@@ -44,8 +50,9 @@ run-server: kill-uvicorn
     #!/usr/bin/env bash
     echo "FastAPI server running at http://localhost:8002"
     echo "FastAPI docs running at http://localhost:8002/docs"
-    export PYTHONPATH=$PWD/src:/Users/dcline/Dropbox/code/aidata
-    cd src/app && conda run -n fastapi-vss --no-capture-output uvicorn main:app --port 8002 --reload
+    conda activate fastapi-vss
+    export PYTHONPATH=$PWD/src:$PWD/src/aidata
+    cd src/app && uvicorn main:app --port 8002 --reload
 
 run-server-prod: build-docker
     #!/usr/bin/env bash
@@ -57,7 +64,7 @@ run-server-prod: build-docker
 build-docker:
     #!/usr/bin/env bash
     tag=$(git describe --tags --always)
-    docker build -t mbari/fastapi-app:$tag .
+    docker build -t mbari/fastapi-app:$tag -f Dockerfile .
 
 # Build the CUDA Docker image
 build-docker-cuda:
