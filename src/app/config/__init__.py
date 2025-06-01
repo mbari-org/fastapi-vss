@@ -18,8 +18,8 @@ from aidata.predictors.process_vits import ViTWrapper
 Initialize the configuration for the application
 """
 
-# Number of images to process in a batch
-BATCH_SIZE = 32
+# Number of images to process in a batch to default 32, or can be set by the environment variable BATCH_SIZE
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", 32))
 
 # Path to store temporary files
 temp_path = Path(tempfile.gettempdir()) / 'fastapi-vss'
