@@ -5,8 +5,6 @@
 
 This accelerates machine learning workflows that require vector similarity search using classification models.
 
---- 
-![](https://raw.githubusercontent.com/mbari-org/fastapi-vss/main/docs/imgs//restwebui.png)
 ---
 
 ## Features
@@ -22,6 +20,8 @@ This accelerates machine learning workflows that require vector similarity searc
 ```bash
 pip install fastapi-vss
 ```
+--- 
+![](https://raw.githubusercontent.com/mbari-org/fastapi-vss/main/docs/imgs//restwebui.png)
 
 ## Related work
  
