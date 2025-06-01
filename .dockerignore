@@ -7,6 +7,6 @@ environment.yml
 Dockerfile*
 *.md
 bin/
-src/submodules
+src/aidata
 .github/
 .gitmodules
