@@ -14,12 +14,7 @@ This accelerates machine learning workflows that require vector similarity searc
 - Support batch processing for efficient querying of multiple images. Default batch size is 32; you can adjust it with the `BATCH_SIZE` environment variable.
 - 📦 Docker container for easy deployment
 - 📜 OpenAPI documentation for easy integration
-
-## Installation
-
-```bash
-pip install fastapi-vss
-```
+ 
 --- 
 ![](https://raw.githubusercontent.com/mbari-org/fastapi-vss/main/docs/imgs//restwebui.png)
 
