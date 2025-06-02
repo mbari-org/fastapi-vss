@@ -1,7 +1,7 @@
 # ================================================================
 #  Docker image for fastapi-vss (CUDA enabled)
 #  ================================================================
-FROM mbari/aidata:1.53.0-cuda124 as base
+FROM mbari/aidata:1.54.0-cuda124 as base
 
 LABEL vendor="MBARI"
 LABEL maintainer="dcline@mbari.org"

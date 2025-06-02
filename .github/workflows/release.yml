@@ -25,5 +25,5 @@ jobs:
           export RELEASE_VERSION=$(echo ${{ steps.semantic.outputs.tag }} | cut -c 2-)
           docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
           docker buildx create --name mybuilder --platform linux/amd64,linux/arm64 --use
-          docker buildx build --sbom=true --provenance=true --push --platform linux/amd64,linux/arm64 -t mbari/fastapi-vss:$RELEASE_VERSION --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION -f Dockerfile .
-          docker buildx build --sbom=true --provenance=true --push --platform linux/amd64,linux/arm64 -t mbari/fastapi-vss:$RELEASE_VERSION --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION-cuda124 -f Dockerfile.cuda .
+          docker buildx build --no-cache --sbom=true --provenance=true --push --platform linux/amd64,linux/arm64 -t mbari/fastapi-vss:$RELEASE_VERSION -t mbari/fastapi-vss:latest --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION -f Dockerfile .
+          docker buildx build --no-cache --sbom=true --provenance=true --push --platform linux/amd64,linux/arm64 -t mbari/fastapi-vss:$RELEASE_VERSION --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION-cuda124 -f Dockerfile.cuda .
