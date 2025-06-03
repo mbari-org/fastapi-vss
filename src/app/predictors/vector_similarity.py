@@ -6,7 +6,7 @@ from redis.commands.search.field import TagField, VectorField
 from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 from redis.commands.search.query import Query
 
-from src.app.logger import err, info, debug
+from app.logger import err, info, debug
 
 
 class VectorSimilarity:
