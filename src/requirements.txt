@@ -9,3 +9,4 @@ numpy
 async-timeout
 redis==5.0.7
 pynvml
+transformers==4.48.0

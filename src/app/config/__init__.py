@@ -12,7 +12,7 @@ import os
 import dotenv
 
 from app.logger import info
-from mbari_aidata.predictors.process_vits import ViTWrapper
+from app.predictors.process_vits import ViTWrapper
 
 """
 Initialize the configuration for the application

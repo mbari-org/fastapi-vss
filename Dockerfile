@@ -1,7 +1,7 @@
 # ================================================================
 #  Docker image for fastapi-vss
 #  ================================================================
-FROM mbari/aidata:1.55.1 AS base
+FROM python:3.11-slim
 
 LABEL vendor="MBARI"
 LABEL maintainer="dcline@mbari.org"
@@ -10,12 +10,17 @@ LABEL license="Apache License 2.0"
 ARG GIT_VERSION=latest
 ARG IMAGE_URI=mbari/fastapi-vss:${GIT_VERSION}
 
+RUN python3 -m venv /venv
+
+# Set environment variables
+ENV PATH="/venv/bin:$PATH"
 ENV APP_HOME=/app
+ENV HF_HOME=/tmp/transformers_cache
+ENV NO_ALBUMENTATIONS_UPDATE=1
 ENV PYTHONPATH=${APP_HOME}/src:${APP_HOME}
 
 WORKDIR $APP_HOME
 COPY . .
-ENV HF_HOME=/tmp/transformers_cache
 
 WORKDIR $APP_HOME
 RUN python3 -m pip install -r src/requirements.txt && \
@@ -25,4 +30,3 @@ RUN python3 -m pip install -r src/requirements.txt && \
 WORKDIR $APP_HOME/src/app
 EXPOSE 80
 ENTRYPOINT ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port 80 "]
-
