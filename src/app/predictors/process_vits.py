@@ -1,7 +1,6 @@
 # fastapi-vss, Apache-2.0 license
 # Filename: predictors/process_vits.py
 # Description: Process images with Vision Transformer (ViT) model and store/search in Redis
-import re
 
 import numpy as np
 import redis
@@ -39,10 +38,6 @@ class ViTWrapper:
             self.device = "cpu"
 
     @property
-    def model_name(self) -> str:
-        return self.model.config._name_or_path
-
-    @property
     def vector_dimensions(self) -> int:
         return self.model.config.hidden_size
 
@@ -58,24 +53,6 @@ class ViTWrapper:
             embeddings = self.model(**inputs)
         batch_embeddings = embeddings.last_hidden_state[:, 0, :].cpu().numpy()
         return np.array(batch_embeddings)
-
-    def load(self, image_paths: List[str], class_names: List[str]):
-        """Load and preprocess batch of images and add to the vector similarity index"""
-        info(f"Loading {len(image_paths)} images")
-        unique_class_names = list(set(class_names))
-        info(f"Found {len(image_paths)} images to load")
-
-        for i in range(0, len(image_paths), self.batch_size):
-            batch = image_paths[i: i + self.batch_size]
-            images = self.preprocess_images(batch)
-            embeddings = self.get_image_embeddings(images)
-            for j, emb in enumerate(embeddings):
-                # make sure the array matches the vector dimensions and type float32 otherwise indexing will fail
-                emb = emb.astype(np.float32)
-                assert emb.shape[0] == self.model.config.hidden_size
-                self.vs.add_vector(doc_id=class_names[i + j], vector=emb.tobytes(), tag=self.model_name)
-
-        info(f"Finished processing {len(image_paths)} images for {unique_class_names}")
 
     def predict(self, image_paths: List[str], top_n: int = 1) -> tuple[
         list[list[str]], list[list[float]], list[list[str]]]:

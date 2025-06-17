@@ -7,12 +7,13 @@ from pathlib import Path
 import tempfile
 
 import redis
+from rq import Queue
+import torch
 import yaml
 import os
 import dotenv
 
 from app.logger import info
-from app.predictors.process_vits import ViTWrapper
 
 """
 Initialize the configuration for the application
@@ -39,6 +40,7 @@ def init_config() -> dict:
     :return: Dictionary of configuration settings keyed by project name
     """
     config = {}
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     # Read the yaml configuration files for each project
     for yaml_path in config_path.rglob('*.yml'):
         if not yaml_path.exists():
@@ -52,19 +54,12 @@ def init_config() -> dict:
             redis_host = data['redis']['host']
             redis_port = data['redis']['port']
             model = data['vss']['model']
-            password = os.getenv("REDIS_PASSWD")
-
-            info(f"Connecting to redis at {redis_host}:{redis_port}")
-            r = redis.Redis(host=redis_host, port=redis_port, password=password)
-            v = ViTWrapper(r, device="cuda:0", model_name=model, reset=False, batch_size=BATCH_SIZE)
-            v.model.eval()
-
             project = data['vss']['project']
 
             config[project] = {
                 'redis_host': redis_host,
                 'redis_port': redis_port,
-                'r': r,
-                'v': v,
+                'model': model,
+                'device': device
             }
     return config
