@@ -26,7 +26,7 @@ WORKDIR $APP_HOME
 RUN python3 -m pip install -r src/requirements.txt && \
     python3 -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
 
-# run the FastAPI server
+# run the FastAPI server, but allow it to be overridden with a different command
 WORKDIR $APP_HOME/src/app
 EXPOSE 80
-ENTRYPOINT ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port 80 "]
+CMD ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port 80 "]

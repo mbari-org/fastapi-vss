@@ -16,9 +16,9 @@ from rq.job import Job
 
 from app import __version__
 from app import logger
+from app.config import init_config, BATCH_SIZE
 from app.logger import info, debug
 from app.predictors.tasks import predict_on_cpu_or_gpu
-from config import init_config, BATCH_SIZE
 
 logger = logger.create_logger_file(Path("logs"))
 
@@ -30,19 +30,20 @@ app = FastAPI(
     version=__version__,
 )
 
-info("Loading configuration")
-global_config = init_config()
-if len(global_config) == 0:
+info("Loading configuration FOOBAR")
+config = init_config()
+
+if len(config) == 0:
     raise Exception("No projects found in the configuration file")
 
 queues = {}
 connections = {}
 
-for project in global_config.keys():
-    redis_host = global_config[project]['redis_host']
-    redis_port = global_config[project]['redis_port']
-    device = global_config[project]['device']
-    v_config = global_config[project]
+for project in config.keys():
+    redis_host = config[project]["redis_host"]
+    redis_port = config[project]["redis_port"]
+    device = config[project]["device"]
+    v_config = config[project]
     password = os.getenv("REDIS_PASSWD")
     info(f"Connecting to redis at {redis_host}:{redis_port}")
     redis_conn = redis.Redis(host=redis_host, port=redis_port, password=password)
@@ -52,16 +53,18 @@ for project in global_config.keys():
     info(f"Redis queue for project {project} created successfully")
     queues[project] = redis_queue
 
-DEFAULT_PROJECT = list(global_config.keys())[0]
+DEFAULT_PROJECT = list(config.keys())[0]
 
 GPU_AVAILABLE = False
 if torch.cuda.is_available():
     pynvml.nvmlInit()
     GPU_AVAILABLE = True
 
+
 @app.get("/")
 async def root():
     return {"message": f"Welcome to Fast-VSS API version {__version__}"}
+
 
 @app.get("/gpu-memory")
 def gpu_memory():
@@ -71,28 +74,31 @@ def gpu_memory():
     mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
     return {"used_memory": mem_info.used, "total_memory": mem_info.total}
 
+
 @app.get("/projects")
 async def get_projects():
-    return {"projects": list(global_config.keys())}
+    return {"projects": list(config.keys())}
+
 
 @app.post("/ids/{project}", status_code=status.HTTP_200_OK)
 async def get_ids(project: str = DEFAULT_PROJECT):
     # Check if the project name is in the config
-    if project not in global_config.keys():
+    if project not in config.keys():
         return {"error": f"Invalid project name {project}"}
 
-    v = global_config[project]['v']
+    v = config[project]["v"]
     try:
         classes, ids = v.get_ids()
         return {"ids": ids, "classes": classes}
     except Exception as e:
         return {"error": f"Error getting ids: {e}"}
 
+
 @app.post("/knn/{top_n}/{project}", status_code=status.HTTP_200_OK)
 async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str = DEFAULT_PROJECT):
     try:
         # Check if the project name is in the config
-        if project not in global_config.keys():
+        if project not in config.keys():
             return {"error": f"Invalid project name {project}"}
 
         info(f"Predicting {len(files)} for top {top_n} in project {project}")
@@ -100,7 +106,7 @@ async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str 
             return {"error": f"Images should be less than batch size {BATCH_SIZE}"}
 
         if top_n == 0:
-            return {"error": f"Please provide a valid top_n value greater than 0"}
+            return {"error": "Please provide a valid top_n value greater than 0"}
 
         images = [f.file for f in files]
         redis_queue = queues[project]
@@ -114,8 +120,8 @@ async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str 
 
 
 @app.post("/predict/job/{job_id}/{project}")
-def get_job_result(job_id: str, project: str = DEFAULT_PROJECT):
-    if project not in global_config.keys():
+async def get_job_result(job_id: str, project: str = DEFAULT_PROJECT):
+    if project not in config.keys():
         return {"error": f"Invalid project name {project}"}
 
     redis_conn = connections[project]

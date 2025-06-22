@@ -54,13 +54,7 @@ class VectorSimilarity:
         self.r.hset(doc_key, mapping={"vector": vector, "tag": tag})
 
     def search_vector(self, vector: list, top_n: int):
-        query = (
-            Query(f"*=>[KNN {top_n} @vector $vec as score]")
-            .sort_by("score")
-            .return_fields("id", "score")
-            .paging(0, top_n)
-            .dialect(2)
-        )
+        query = Query(f"*=>[KNN {top_n} @vector $vec as score]").sort_by("score").return_fields("id", "score").paging(0, top_n).dialect(2)
         query_params = {"vec": vector}
         return self.r.ft(self.INDEX_NAME).search(query, query_params).docs
 

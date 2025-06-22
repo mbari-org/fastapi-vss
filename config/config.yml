@@ -1,0 +1,11 @@
+# config.yml
+# Config file for testing and development
+
+redis:
+  host: "redis"
+  port: 6379
+  project: "testproject"
+
+vss:
+  model: "google/vit-base-patch16-224"
+  project: "testproject"

@@ -18,7 +18,7 @@ jobs:
         uses: python-semantic-release/python-semantic-release@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: docker push version
         if: steps.semantic.outputs.released == 'true'
         run: |

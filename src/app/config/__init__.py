@@ -6,8 +6,7 @@
 from pathlib import Path
 import tempfile
 
-import redis
-from rq import Queue
+from typing import TypedDict
 import torch
 import yaml
 import os
@@ -23,7 +22,7 @@ Initialize the configuration for the application
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", 32))
 
 # Path to store temporary files
-temp_path = Path(tempfile.gettempdir()) / 'fastapi-vss'
+temp_path = Path(tempfile.gettempdir()) / "fastapi-vss"
 
 # Required environment variables REDIS_PASSWD and CONFIG_PATH
 dotenv.load_dotenv()
@@ -34,32 +33,43 @@ if not os.getenv("CONFIG_PATH"):
 
 config_path = Path(os.getenv("CONFIG_PATH"))
 
-def init_config() -> dict:
+
+class VConfig(TypedDict):
+    redis_port: str
+    redis_host: str
+    device: str
+    model: str
+    project: str
+
+
+def init_config() -> dict[str, VConfig]:
     """
     Initialize the configuration for the application
     :return: Dictionary of configuration settings keyed by project name
     """
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     config = {}
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     # Read the yaml configuration files for each project
-    for yaml_path in config_path.rglob('*.yml'):
+    for yaml_path in config_path.rglob("*.yml"):
         if not yaml_path.exists():
             raise FileNotFoundError(f"Could not find {yaml_path}")
 
         # Read the yaml configuration files for each project
-        with yaml_path.open('r') as yaml_file:
+        with yaml_path.open("r") as yaml_file:
             data = yaml.safe_load(yaml_file)
             info(f"Reading configuration from {yaml_path}")
             info(data)
-            redis_host = data['redis']['host']
-            redis_port = data['redis']['port']
-            model = data['vss']['model']
-            project = data['vss']['project']
+            redis_host = data["redis"]["host"]
+            redis_port = data["redis"]["port"]
+            model = data["vss"]["model"]
+            project = data["vss"]["project"]
 
             config[project] = {
-                'redis_host': redis_host,
-                'redis_port': redis_port,
-                'model': model,
-                'device': device
+                "redis_host": redis_host,
+                "redis_port": redis_port,
+                "model": model,
+                "device": device,
+                "project": project,
             }
+
     return config

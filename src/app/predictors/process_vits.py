@@ -6,7 +6,7 @@ import numpy as np
 import redis
 import torch
 from PIL import Image
-from transformers import AutoModelForImageClassification, AutoImageProcessor  # type: ignore
+from transformers import AutoModel, AutoImageProcessor  # type: ignore
 from typing import List
 
 from app.logger import info
@@ -16,26 +16,13 @@ from app.predictors.vector_similarity import VectorSimilarity
 class ViTWrapper:
     DEFAULT_MODEL_NAME = "google/vit-base-patch16-224"
 
-    def __init__(self, r: redis.Redis,
-                 device: str = "cpu",
-                 model_name: str = DEFAULT_MODEL_NAME,
-                 reset: bool = False,
-                 batch_size: int = 32):
+    def __init__(self, r: redis.Redis, device, model_name: str = DEFAULT_MODEL_NAME, reset: bool = False, batch_size: int = 32):
         self.r = r
+        self.device = device
         self.batch_size = batch_size
         self.processor = AutoImageProcessor.from_pretrained(model_name)
-        self.model = AutoModelForImageClassification.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(model_name).to(self.device)
         self.vs = VectorSimilarity(r, vector_dimensions=self.vector_dimensions, reset=reset)
-
-        # Load the model and processor
-        if 'cuda' in device and torch.cuda.is_available():
-            device_num = int(device.split(":")[-1])
-            info(f"Using GPU device {device_num}")
-            torch.cuda.set_device(device_num)
-            self.device = "cuda"
-            self.model.to("cuda")
-        else:
-            self.device = "cpu"
 
     @property
     def vector_dimensions(self) -> int:
@@ -54,8 +41,7 @@ class ViTWrapper:
         batch_embeddings = embeddings.last_hidden_state[:, 0, :].cpu().numpy()
         return np.array(batch_embeddings)
 
-    def predict(self, image_paths: List[str], top_n: int = 1) -> tuple[
-        list[list[str]], list[list[float]], list[list[str]]]:
+    def predict(self, image_paths: List[str], top_n: int = 1) -> tuple[list[list[str]], list[list[float]], list[list[str]]]:
         """Search using KNN for embeddings for a batch of images"""
         predictions = []
         scores = []
@@ -63,7 +49,7 @@ class ViTWrapper:
 
         info(f"Found {len(image_paths)} images to predict")
         for i in range(0, len(image_paths), self.batch_size):
-            batch = image_paths[i: i + self.batch_size]
+            batch = image_paths[i : i + self.batch_size]
             images = self.preprocess_images(batch)
             embeddings = self.get_image_embeddings(images)
             for j, emb in enumerate(embeddings):
