@@ -7,5 +7,6 @@ redis:
   project: "testproject"
 
 vss:
-  model: "google/vit-base-patch16-224"
-  project: "testproject"
+  model: "google/vit-base-patch16-224" # Model to use for VSS can be a Hugging Face model ID or a local path
+  project: "testproject" # Project name for VSS
+  output_dir: "/data/vss/outputs"  # Directory where VSS saves JSON results
