@@ -16,9 +16,12 @@ services:
       - uvicorn src.app.main:app --host  0.0.0.0 --port 80 --reload --reload-dir /app/src/
     ports:
       - "8000:80"
+    environment:
+      - LOG_DIR=${LOG_PATH}/fastapi
     volumes:
       - ${CONFIG_PATH}:${CONFIG_PATH}
-      - ./logs_fapi:/app/src/app/logs
+      - ${LOG_PATH}:${LOG_PATH}
+      - ./data:/data
       - ./src:/app/src
     user: ${MLDEVOPS_GID}:${MLDEVOPS_UID}
     restart: always
@@ -37,6 +40,8 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+    environment:
+      - LOG_DIR=${LOG_PATH}/fastapi
     volumes:
       - redis-data:/data
     restart: always
@@ -55,8 +60,10 @@ services:
         - -c
         - rq worker --url redis://default:${REDIS_PASSWD}@redis:6379 default
     volumes:
-      - ./config:/config
-      - ./logs_worker:/app/src/app/logs
+      - ${CONFIG_PATH}:${CONFIG_PATH}
+      - ${LOG_PATH}:${LOG_PATH}
+      - ./data:/data
+      - ./src:/app/src
     depends_on:
       - redis
     networks:
