@@ -1,6 +1,6 @@
 # fastapi-vss, Apache-2.0 license
 # Filename: app/main.py
-# Description: Process images with foundational Vision Transformer (ViT) models
+# Description: Process images with Vision Transformer (ViT) models
 import os
 
 import redis
@@ -26,7 +26,7 @@ info(f"Starting Fast-VSS API version {__version__}")
 
 app = FastAPI(
     title=f"Fast-VSS API version {__version__}",
-    description=f"""Run vector similarity search using foundational Vision Transformer (ViT) models . Version {__version__}""",
+    description=f"""Run vector similarity search using Vision Transformer (ViT) models . Version {__version__}""",
     version=__version__,
 )
 
@@ -65,6 +65,13 @@ if torch.cuda.is_available():
 async def root():
     return {"message": f"Welcome to Fast-VSS API version {__version__}"}
 
+
+@app.get("/health")
+async def health():
+    """
+    Health check endpoint to verify if the API is running
+    """
+    return {"status": "ok", "version": __version__}
 
 @app.get("/gpu-memory")
 def gpu_memory():
@@ -109,17 +116,18 @@ async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str 
             return {"error": "Please provide a valid top_n value greater than 0"}
 
         images = [f.file for f in files]
+        filenames = [f.filename for f in files]
         redis_queue = queues[project]
 
         info(f"Enqueuing job for {len(images)} images with top_n={top_n} in project {project}")
-        job = redis_queue.enqueue(predict_on_cpu_or_gpu, v_config, images, top_n)
+        job = redis_queue.enqueue(predict_on_cpu_or_gpu, v_config, images, top_n, filenames)
         debug(f"Enqueued job with ID {job.get_id()} for project {project}")
         return {"job_id": job.get_id()}
     except Exception as e:
         return {"error": f"Error predicting images: {e}"}
 
 
-@app.post("/predict/job/{job_id}/{project}")
+@app.get("/predict/job/{job_id}/{project}")
 async def get_job_result(job_id: str, project: str = DEFAULT_PROJECT):
     if project not in config.keys():
         return {"error": f"Invalid project name {project}"}
