@@ -9,12 +9,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      redis:
-        image: redis:7
-        ports:
-          - 6379:6379
-
     steps:
       - uses: actions/checkout@v4
 
@@ -27,16 +21,18 @@ jobs:
         run: |
           CODE_PATH="$(pwd)"
           sed -i.bak "/^CONFIG_PATH=/d;/^LOG_PATH=/d" example.env
-          echo "CONFIG_PATH=${CODE_PATH}/config" >> example.env
-          echo "LOG_PATH=${CODE_PATH}/logs" >> example.env
+          echo CONFIG_PATH=${CODE_PATH}/config >> example.env
+          echo LOG_PATH=${CODE_PATH}/logs >> example.env
           cat example.env > .env
           mkdir -p config logs
           ls -l
 
       - name: Set up Docker Compose
-        run: docker compose -f compose.yml up -d
+        run: |
+          docker compose -f compose.yml up -d
 
-      - name: Run .http file
-        uses: swinton/httpie.action@master
-        with:
-          args: ["--file", "test_main.http"]
+      - name: Install httpyac
+        run: npm install -g httpyac
+
+      - name: Run HTTP tests
+        run: httpyac send -a test_main.http

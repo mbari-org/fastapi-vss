@@ -38,11 +38,11 @@ services:
     command:
       - /bin/sh
       - -c
-      - redis-stack-server  --port 6380 --appendonly yes --appendfsync everysec --requirepass "$${REDIS_PASSWD:?REDIS_PASSWD variable is not set}"
+      - redis-stack-server  --port 6379 --appendonly yes --appendfsync everysec --requirepass "$${REDIS_PASSWD:?REDIS_PASSWD variable is not set}"
     image: redis/redis-stack-server
     container_name: redis
     ports:
-      - "6380:6380"
+      - "6379:6379"
     volumes:
       - redis-data:/data
     restart: always
@@ -58,12 +58,12 @@ services:
     container_name: rq-worker-vss
     environment:
       - REDIS_PASSWD=${REDIS_PASSWD}
-      - REDIS_URL=redis://default:${REDIS_PASSWD}@redis:6380
+      - REDIS_URL=redis://default:${REDIS_PASSWD}@redis:6379
       - LOG_DIR=/log/fastapi
     entrypoint:
         - /bin/sh
         - -c
-        - python /app/tests/load.py && rq worker --url redis://default:${REDIS_PASSWD}@redis:6380 default
+        - python /app/tests/load.py && rq worker --url redis://default:${REDIS_PASSWD}@redis:6379 default
     volumes:
       - ${CONFIG_PATH}:${CONFIG_PATH}
       - ${LOG_PATH}:/log

@@ -18,7 +18,7 @@ DEFAULT_MODEL = "google/vit-base-patch16-224"
 vector_dimensions = 768  # Default for ViT base model
 reset = True
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-r = redis.Redis(host='redis', port=6380, db=0, password=os.getenv("REDIS_PASSWD"))
+r = redis.Redis(host='redis', port=6379, db=0, password=os.getenv("REDIS_PASSWD"))
 vs = VectorSimilarity(r, vector_dimensions=vector_dimensions, reset=reset)
 v = ViTWrapper(r,device,DEFAULT_MODEL)
 
