@@ -1,0 +1,45 @@
+name: API Integration Test
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Docker Compose
+        run: |
+          docker compose -f compose.yml up -d
+
+      - name: Wait for API to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:8000/health | grep '"status": "ok"'; then
+              echo "API is up!"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "API did not start in time" && exit 1
+
+      - name: Install httpyac
+        run: npm install -g httpyac
+
+      - name: Run HTTP tests
+        run: httpyac test_main.http
