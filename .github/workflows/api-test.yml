@@ -37,8 +37,7 @@ jobs:
         run: |
           docker compose -f compose.yml up -d
 
-      - name: Install httpyac
-        run: npm install -g httpyac
-
-      - name: Run HTTP tests
-        run: httpyac test_main.http
+      - name: Run .http file
+        uses: swinton/httpie.action@master
+        with:
+          args: ["--file", "test_main.http"]
