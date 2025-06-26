@@ -27,8 +27,8 @@ jobs:
         run: |
           CODE_PATH="$(pwd)"
           sed -i.bak "/^CONFIG_PATH=/d;/^LOG_PATH=/d" example.env
-          echo "CONFIG_PATH=\$CODE_PATH/config" >> example.env
-          echo "LOG_PATH=\$CODE_PATH/log" >> example.env
+          echo CONFIG_PATH=${CODE_PATH}/config >> example.env
+          echo LOG_PATH=${CODE_PATH}/log >> example.env
 
       - name: Set up Docker Compose
         run: |
