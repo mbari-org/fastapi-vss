@@ -37,17 +37,6 @@ jobs:
         run: |
           docker compose -f compose.yml up -d
 
-      - name: Wait for API to be ready
-        run: |
-          for i in {1..30}; do
-            if curl -s http://localhost:8000/health | grep '"status":"ok"'; then
-              echo "API is up!"
-              exit 0
-            fi
-            sleep 10
-          done
-          echo "API did not start in time" && exit 1
-
       - name: Install httpyac
         run: npm install -g httpyac
 
