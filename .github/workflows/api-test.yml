@@ -35,6 +35,8 @@ jobs:
 
       - name: Set up Docker Compose
         run: |
+          docker compose -f compose.yml down || true
+          docker ps -a
           docker compose -f compose.yml up -d
 
       - name: Wait for API to be ready
