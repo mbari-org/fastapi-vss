@@ -2,12 +2,13 @@
 # Filename: predictors/tasks.py
 # Description: Worker task file for processing images with Vision Transformer (ViT) models
 import gc
+import json
 import os
 from typing import List
 
 import redis
 
-from app.logger import info
+from app.logger import info, debug
 from app.predictors.process_vits import ViTWrapper
 from app.config import BATCH_SIZE, init_config
 
@@ -48,7 +49,7 @@ def init_predictors() -> dict[str, ViTWrapper]:
     return predictors
 
 
-def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int):
+def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, filenames: List[str]):
     info(f"Predicting on {len(image_list)} images with top_n={top_n} using model {v_config['model']} on device {v_config['device']}")
 
     global predictors
@@ -58,16 +59,25 @@ def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int):
     if not v:
         message = f"Predictor for project {v_config.get('project')} not found. Please initialize predictors first."
         info(message)
-        return {
-            "predictions": [message],
-            "scores": [],
-            "ids": [],
-        }
-    predictions, scores, ids = v.predict(image_list, top_n)
-    gc.collect()
-    del image_list
-    return {
-        "predictions": predictions,
-        "scores": scores,
-        "ids": ids,
-    }
+        return message
+
+    try:
+        predictions, scores, ids = v.predict(image_list, top_n)
+        gc.collect()
+        del image_list
+        # Save to output_json file using the first and last filename(if there is more than one filename)
+        file_stem = f"{os.path.splitext(os.path.basename(filenames[0]))[0]}_to_{os.path.splitext(os.path.basename(filenames[-1]))[0]}" if len(filenames) > 1 else os.path.splitext(os.path.basename(filenames[0]))[0]
+        output_json = f"{v_config['output_dir']}/{file_stem}.json"
+        debug(f"Saving predictions to {file_stem}.json")
+        with open(output_json, 'w') as f:
+            json.dump({
+                "filenames": filenames,
+                "predictions": predictions,
+                "scores": scores,
+                "ids": ids
+            }, f, indent=4)
+        debug(f"Predictions saved to {output_json}")
+    except Exception as e:
+        error_message = f"Error saving predictions to {output_json}: {e}"
+        info(error_message)
+        return error_message

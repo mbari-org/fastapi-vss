@@ -111,16 +111,6 @@ process_atolla:
       echo "Failed to extract job ID from response: $response"
       exit 1
     fi
-
-    sleep 4  # Wait for the job to be processed
-
-    # Get the results
-    response=$(curl -s -X 'POST' \
-      "http://localhost:8000/predict/job/${id}/testproject" \
-      -H 'accept: application/json' \
-      -H 'Content-Type: multipart/form-data' )
-    echo "Results for Atolla images: $response"
-
 process_copepods:
     #!/usr/bin/env bash
     cd ./tests/images/copepod

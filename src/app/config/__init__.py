@@ -6,11 +6,12 @@
 from pathlib import Path
 import tempfile
 
-from typing import TypedDict
+from typing import TypedDict, Any
 import torch
 import yaml
 import os
 import dotenv
+from torch import device
 
 from app.logger import info
 
@@ -31,18 +32,18 @@ if not os.getenv("REDIS_PASSWD"):
 if not os.getenv("CONFIG_PATH"):
     raise Exception("CONFIG_PATH environment variable not set")
 
-config_path = Path(os.getenv("CONFIG_PATH"))
+CONFIG_PATH = Path(os.getenv("CONFIG_PATH"))
 
 
 class VConfig(TypedDict):
     redis_port: str
-    redis_host: str
-    device: str
+    redis_host: int
+    device: torch.device
     model: str
     project: str
 
 
-def init_config() -> dict[str, VConfig]:
+def init_config() -> dict[Any, dict[str, device | Any]]:
     """
     Initialize the configuration for the application
     :return: Dictionary of configuration settings keyed by project name
@@ -50,26 +51,24 @@ def init_config() -> dict[str, VConfig]:
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     config = {}
     # Read the yaml configuration files for each project
-    for yaml_path in config_path.rglob("*.yml"):
+    for yaml_path in CONFIG_PATH.rglob("*.yml"):
         if not yaml_path.exists():
             raise FileNotFoundError(f"Could not find {yaml_path}")
 
-        # Read the yaml configuration files for each project
+        # Read the yaml configuration files for each project and setup the output directory
         with yaml_path.open("r") as yaml_file:
             data = yaml.safe_load(yaml_file)
             info(f"Reading configuration from {yaml_path}")
             info(data)
-            redis_host = data["redis"]["host"]
-            redis_port = data["redis"]["port"]
-            model = data["vss"]["model"]
             project = data["vss"]["project"]
 
             config[project] = {
-                "redis_host": redis_host,
-                "redis_port": redis_port,
-                "model": model,
+                "redis_host": data["redis"]["host"],
+                "redis_port": data["redis"]["port"],
+                "model": data["vss"]["model"],
                 "device": device,
                 "project": project,
+                "output_dir":  data["vss"]["output_dir"]
             }
 
     return config

@@ -66,7 +66,7 @@ class ViTWrapper:
 
         return predictions, scores, ids
 
-    def get_ids(self):
+    def get_ids(self) -> tuple[list[str], list[str]]:
         """Get all the ids in the index"""
         all_keys = self.vs.get_all_keys()
         # Data is formatted <doc:label:id>, e.g. doc:Otter:12467, doc:Otter:12467, etc.

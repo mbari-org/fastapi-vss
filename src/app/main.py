@@ -6,7 +6,6 @@ import os
 import redis
 import torch
 import pynvml
-from pathlib import Path
 
 from fastapi import FastAPI, status, File, UploadFile
 from typing import List
@@ -20,7 +19,8 @@ from app.config import init_config, BATCH_SIZE
 from app.logger import info, debug
 from app.predictors.tasks import predict_on_cpu_or_gpu
 
-logger = logger.create_logger_file(Path("logs"))
+log_path = os.getenv("LOG_DIR", "logs")
+logger = logger.create_logger_file(log_path)
 
 info(f"Starting Fast-VSS API version {__version__}")
 
@@ -30,7 +30,7 @@ app = FastAPI(
     version=__version__,
 )
 
-info("Loading configuration FOOBAR")
+info("Loading configuration")
 config = init_config()
 
 if len(config) == 0:

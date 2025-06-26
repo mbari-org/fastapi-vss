@@ -13,14 +13,14 @@ services:
     command:
       - /bin/sh
       - -c
-      - uvicorn src.app.main:app --host  0.0.0.0 --port 80 --reload --reload-dir /app/src/
+      - uvicorn src.app.main:app --host 0.0.0.0 --port 80 --reload --reload-dir /app/src/
     ports:
       - "8000:80"
     environment:
-      - LOG_DIR=${LOG_PATH}/fastapi
+      - LOG_DIR=/log/fastapi
     volumes:
       - ${CONFIG_PATH}:${CONFIG_PATH}
-      - ${LOG_PATH}:${LOG_PATH}
+      - ${LOG_PATH}:/log
       - ./data:/data
       - ./src:/app/src
     user: ${MLDEVOPS_GID}:${MLDEVOPS_UID}
@@ -40,8 +40,6 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
-    environment:
-      - LOG_DIR=${LOG_PATH}/fastapi
     volumes:
       - redis-data:/data
     restart: always
@@ -55,17 +53,19 @@ services:
     environment:
       - REDIS_PASSWD=${REDIS_PASSWD}
       - REDIS_URL=redis://default:${REDIS_PASSWD}@redis:6379
+      - LOG_DIR=/log/fastapi
     entrypoint:
         - /bin/sh
         - -c
-        - rq worker --url redis://default:${REDIS_PASSWD}@redis:6379 default
+        - python /app/tests/load.py && rq worker --url redis://default:${REDIS_PASSWD}@redis:6379 default
     volumes:
       - ${CONFIG_PATH}:${CONFIG_PATH}
-      - ${LOG_PATH}:${LOG_PATH}
+      - ${LOG_PATH}:/log
       - ./data:/data
       - ./src:/app/src
+      - ./tests:/app/tests
     depends_on:
-      - redis
+      - fastapi
     networks:
       - vss
 volumes:

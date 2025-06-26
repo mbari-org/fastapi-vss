@@ -3,11 +3,11 @@
 # Description:  Logger for fastapi-vss. Logs to both a file and the console
 
 import logging
+import os
 from pathlib import Path
 from datetime import datetime as dt
 
 LOGGER_NAME = "FASTAPI_VSS"
-DEBUG = True
 
 
 class _Singleton(type):
@@ -29,12 +29,12 @@ class CustomLogger(Singleton):
     _logger = None
     _output_path = Path.cwd()
 
-    def __init__(self, output_path: Path = Path.cwd(), output_prefix: str = "fastapi_vss"):
+    def __init__(self, output_path: Path = os.getenv("LOG_DIR", Path.cwd()), output_prefix: str = "fastapi_vss"):
         """
         Initialize the logger
         """
         self._logger = logging.getLogger(LOGGER_NAME)
-        self._logger.setLevel(logging.DEBUG)
+        self._logger.setLevel(os.getenv("LOG_LEVEL", logging.DEBUG))
         self._output_path = output_path
         output_path.mkdir(parents=True, exist_ok=True)
         formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s")
@@ -61,12 +61,13 @@ class CustomLogger(Singleton):
         return self._logger
 
 
-def create_logger_file(log_path: Path, prefix: str = "fastapi_vss"):
+def create_logger_file(log_path: str, prefix: str = "fastapi_vss"):
     """
     Create a logger file
     :param log_path: Path to the log file
     """
     # create the log directory if it doesn't exist
+    log_path = Path(log_path)
     log_path.mkdir(parents=True, exist_ok=True)
     return CustomLogger(log_path, prefix)
 
