@@ -14,8 +14,6 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
 
       - name: Set CODE_PATH and create logs directory
         run: |
@@ -26,24 +24,22 @@ jobs:
           cat example.env > .env
           mkdir -p config logs
           ls -l
+          server_name=127.0.0.1
+          sed -i.bak "s/localhost/${server_name}/g" test_main.http
 
       - name: Set up Docker Compose
         run: |
           docker compose -f compose.yml up -d
 
-      - name: Wait for API to be ready
-        run: |
-          for i in {1..30}; do
-            if curl -s http://localhost:8000/health | grep '"status":"ok"'; then
-              echo "API is up!"
-              exit 0
-            fi
-            sleep 10
-          done
-          echo "API did not start in time" && exit 1
-
       - name: Install httpyac
         run: npm install -g httpyac
 
+      - name: Wait for the FastAPI service to be ready
+        run: |
+          echo "Waiting for FastAPI service to be ready..."
+          until curl -f http://localhost:8000/health; do
+            echo "FastAPI service is not ready yet. Retrying in 5 seconds..."
+            sleep 5
+          done
       - name: Run HTTP tests
         run: httpyac send -a test_main.http
