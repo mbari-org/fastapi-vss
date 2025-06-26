@@ -17,6 +17,13 @@ install:
     conda activate fastapi-vss
     python -m pip install -r src/aidata/requirements.txt
     python -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
+    CODE_PATH="$(pwd)"
+    sed -i.bak "/^CONFIG_PATH=/d;/^LOG_PATH=/d" example.env
+    echo CONFIG_PATH=${CODE_PATH}/config >> example.env
+    echo LOG_PATH=${CODE_PATH}/logs >> example.env
+    cat example.env > .env
+    mkdir -p logs
+    ls -l
 
 # Update the conda development environment. Run this command after checking out any code changes
 update:

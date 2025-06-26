@@ -12,7 +12,7 @@ services:
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://127.0.0.1:8000/health" ]
     env_file:
-      - ./example.env
+      - .env
     command:
       - /bin/sh
       - -c
@@ -34,7 +34,7 @@ services:
       - vss
   redis:
     env_file:
-      - ./example.env
+      - .env
     command:
       - /bin/sh
       - -c
@@ -53,7 +53,7 @@ services:
       context: .
       dockerfile: Dockerfile
     env_file:
-      - ./example.env
+      - .env
     image: mbari/fastapi-vss:${GIT_VERSION}
     container_name: rq-worker-vss
     environment:
