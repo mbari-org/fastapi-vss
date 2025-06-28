@@ -31,19 +31,23 @@ jobs:
         run: |
           docker compose -f compose.yml up -d
 
-      - name: Wait for API to be ready
-        run: |
-          for i in {1..30}; do
-            if curl -s http://127.0.0.1:8000/health | grep '"status":"ok"'; then
-              echo "API is up!"
-              exit 0
-            fi
-            sleep 10
-          done
-          echo "API did not start in time" && exit 1
-
       - name: Install httpyac
         run: npm install -g httpyac
+#
+#      - name: Wait for fastapi to become healthy
+#        run: |
+#          for i in {1..30}; do
+#            STATUS=$(docker inspect --format='{{.State.Health.Status}}' fastapi-vss)
+#            echo "Health status: $STATUS"
+#            if [ "$STATUS" = "healthy" ]; then
+#              echo "Container is healthy!"
+#              exit 0
+#            fi
+#            sleep 5
+#          done
+#          echo "Container failed to become healthy in time"
+#          docker logs fastapi-vss
+#          exit 1
 
       - name: Run HTTP tests
         run: httpyac send -a test_main.http
