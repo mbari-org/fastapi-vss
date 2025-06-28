@@ -10,20 +10,22 @@ list:
     @just --list --unsorted
 
 # Setup the environment for development
-install:
+install: setup-env
     #!/usr/bin/env bash
     conda env create -f environment.yml
     git clone --branch v1.53.0 https://github.com/mbari-org/aidata ./src/aidata
     conda activate fastapi-vss
     python -m pip install -r src/aidata/requirements.txt
     python -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
+
+setup-env:
+    #!/usr/bin/env bash
     CODE_PATH="$(pwd)"
     sed -i.bak "/^CONFIG_PATH=/d;/^LOG_PATH=/d" example.env
     echo CONFIG_PATH=${CODE_PATH}/config >> example.env
     echo LOG_PATH=${CODE_PATH}/logs >> example.env
-    cat example.env > .env
+    cp example.env .env
     mkdir -p logs
-    ls -l
 
 # Update the conda development environment. Run this command after checking out any code changes
 update:
@@ -39,7 +41,7 @@ kill-uvicorn:
       pkill -f "uvicorn main:app"
     fi
 
-# Run the FastAPI server
+# Run the FastAPI server locally in development mode
 run-server: kill-uvicorn
     #!/usr/bin/env bash
     echo "FastAPI server running at http://localhost:8000"
@@ -49,7 +51,13 @@ run-server: kill-uvicorn
     cd src/app &&
     uvicorn main:app --port 8000 --reload
 
-run-server-prod: build-docker
+run-server-dev: setup-env
+    #!/usr/bin/env bash
+    tag=$(git describe --tags --always)
+    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.dev.yml down --remove-orphans && \
+    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.dev.yml up -d
+
+run-server-prod: setup-env
     #!/usr/bin/env bash
     tag=$(git describe --tags --always)
     GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.yml down --remove-orphans && \
@@ -67,27 +75,15 @@ build-docker-cuda:
     tag=$(git describe --tags --always)
     docker build -t mbari/fastapi-vss:$tag -f Dockerfile.cuda .
 
-build-docker-no-cache:
-    #!/usr/bin/env bash
-    tag=$(git describe --tags --always)
-    docker build --no-cache -t mbari/fastapi-vss:$tag .
-
-run-docker:
-    echo "FastAPI server running at http://localhost:8001"
-    docker run -p "8001:80" mbari/fastapi-vss
-
-# Build the docker images for linux/amd64 and linux/arm64 and push to Docker Hub
+# Build the docker images for linux/amd64 and push to Docker Hub
 build-and-push:
     #!/usr/bin/env bash
     echo "Building and pushing the Docker image"
     RELEASE_VERSION=$(git describe --tags --abbrev=0)
     echo "Release version: $RELEASE_VERSION"
     RELEASE_VERSION=${RELEASE_VERSION:1}
-    docker pull mbari/aidata:1.53.0-cuda124
-    docker pull mbari/aidata:1.53.0
-    docker buildx create --name mybuilder --platform linux/amd64,linux/arm64 --use
-    docker buildx build --sbom=true --provenance=true --push --platform linux/amd64,linux/arm64 -t mbari/fastapi-vss:$RELEASE_VERSION --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION -f Dockerfile .
-    docker buildx build --sbom=true --provenance=true --push --platform linux/amd64,linux/arm64 -t mbari/fastapi-vss:$RELEASE_VERSION-cuda124 --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION -f Dockerfile.cuda .
+    docker buildx create --name mybuilder --platform linux/amd64 --use
+    docker buildx build --sbom=true --provenance=true --push --platform linux/amd64  -t mbari/fastapi-vss:$RELEASE_VERSION-cuda124 --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION -f Dockerfile.cuda .
 
 # Default recipe
 default:

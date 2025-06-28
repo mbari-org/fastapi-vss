@@ -4,6 +4,8 @@
 import gc
 import json
 import os
+from datetime import datetime
+from pathlib import Path
 from typing import List
 
 import redis
@@ -67,9 +69,22 @@ def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, fil
         del image_list
         # Save to output_json file using the first and last filename(if there is more than one filename)
         file_stem = f"{os.path.splitext(os.path.basename(filenames[0]))[0]}_to_{os.path.splitext(os.path.basename(filenames[-1]))[0]}" if len(filenames) > 1 else os.path.splitext(os.path.basename(filenames[0]))[0]
-        output_json = f"{v_config['output_dir']}/{file_stem}.json"
+
+        # Make a subdirectory based on the current date and time (hourly granularity)
+        current_time = datetime.now().strftime("%Y%m%d_%H")
+
+        # Create output directory if it doesn't exist
+        output_dir = v_config.get("output_dir", "output")
+        output_path = Path(output_dir) / current_time
+        output_path.mkdir(parents=True, exist_ok=True)
+        output_json = output_path / f"{file_stem}.json"
+
+
+        # Truncate the scores to 4 decimal places
+        scores = [[round(score, 4) for score in score_list] for score_list in scores]
+
         debug(f"Saving predictions to {file_stem}.json")
-        with open(output_json, 'w') as f:
+        with output_json.open("w") as f:
             json.dump({
                 "filenames": filenames,
                 "predictions": predictions,

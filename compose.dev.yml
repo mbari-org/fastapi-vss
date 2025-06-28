@@ -19,7 +19,7 @@ services:
     command:
       - /bin/sh
       - -c
-      - uvicorn src.app.main:app --host 0.0.0.0 --port 80
+      - uvicorn src.app.main:app --host 0.0.0.0 --port 80  --reload --reload-dir /app/src
     ports:
       - "8000:80"
     environment:
@@ -28,6 +28,7 @@ services:
       - ${CONFIG_PATH}:${CONFIG_PATH}
       - ${LOG_PATH}:/log
       - ./data:/data
+      - ./src:/app/src
     user: ${MLDEVOPS_GID}:${MLDEVOPS_UID}
     restart: always
     depends_on:
@@ -70,6 +71,7 @@ services:
       - ${CONFIG_PATH}:${CONFIG_PATH}
       - ${LOG_PATH}:/log
       - ./data:/data
+      - ./src:/app/src
       - ./tests:/app/tests
     depends_on:
       - fastapi
