@@ -21,6 +21,10 @@ jobs:
           sed -i.bak "/^CONFIG_PATH=/d;/^LOG_PATH=/d" example.env
           echo CONFIG_PATH=${CODE_PATH}/config >> example.env
           echo LOG_PATH=${CODE_PATH}/logs >> example.env
+          USER_ID=$(id -u)
+          GROUP_ID=$(id -g)
+          echo MLDEVOPS_UID=${USER_ID} >> example.env
+          echo MLDEVOPS_GID=${GROUP_ID} >> example.env
           cp example.env  .env
           mkdir -p logs
           server_name=127.0.0.1
