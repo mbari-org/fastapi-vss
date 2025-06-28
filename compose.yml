@@ -23,10 +23,10 @@ services:
     ports:
       - "8000:80"
     environment:
-      - LOG_DIR=/log/fastapi
+      - LOG_DIR=${LOG_PATH}/fastapi
     volumes:
       - ${CONFIG_PATH}:${CONFIG_PATH}
-      - ${LOG_PATH}:/log
+      - ${LOG_PATH}:${LOG_PATH}
       - ./data:/data
     user: ${MLDEVOPS_GID}:${MLDEVOPS_UID}
     restart: always
@@ -61,14 +61,14 @@ services:
     environment:
       - REDIS_PASSWD=${REDIS_PASSWD}
       - REDIS_URL=redis://default:${REDIS_PASSWD}@redis:6379
-      - LOG_DIR=/log/fastapi
+      - LOG_DIR=${LOG_PATH}
     entrypoint:
         - /bin/sh
         - -c
         - python /app/tests/load.py && rq worker --url redis://default:${REDIS_PASSWD}@redis:6379 default
     volumes:
       - ${CONFIG_PATH}:${CONFIG_PATH}
-      - ${LOG_PATH}:/log
+      - ${LOG_PATH}:${LOG_PATH}
       - ./data:/data
       - ./tests:/app/tests
     depends_on:
