@@ -56,13 +56,16 @@ class ViTWrapper:
                 r = self.vs.search_vector(emb.tobytes(), top_n=top_n)
                 # Data is doc:label:id - split it into parts
                 data = [x["id"].split(":") for x in r]
+                batch_pred = []
+                batch_ids = []
                 for d in data:
-                    if len(d) != 3:
-                        continue
-                    predictions.append(d[1])
-                    ids.append(d[2])
+                    batch_pred.append(d[1])
+                    batch_ids.append(d[2])
+
+                predictions.append([b for b in batch_pred])
+                ids.append([i for i in batch_ids])
                 # Separate out the scores for each prediction - this is used later for voting
-                scores.append([x["score"] for x in r])
+                scores.append([round(float(x["score"]),4) for x in r])
 
         return predictions, scores, ids
 

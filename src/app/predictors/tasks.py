@@ -67,23 +67,18 @@ def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, fil
         predictions, scores, ids = v.predict(image_list, top_n)
         gc.collect()
         del image_list
-        # Save to output_json file using the first and last filename(if there is more than one filename)
-        file_stem = f"{os.path.splitext(os.path.basename(filenames[0]))[0]}_to_{os.path.splitext(os.path.basename(filenames[-1]))[0]}" if len(filenames) > 1 else os.path.splitext(os.path.basename(filenames[0]))[0]
 
         # Make a subdirectory based on the current date and time (hourly granularity)
-        current_time = datetime.now().strftime("%Y%m%d_%H")
+        current_time_hr = datetime.now().strftime("%Y%m%d_%H0000")
+        current_time = datetime.now().strftime("%Y%m%d_%H%M%S.%f")
 
         # Create output directory if it doesn't exist
         output_dir = v_config.get("output_dir", "output")
-        output_path = Path(output_dir) / current_time
+        output_path = Path(output_dir) / current_time_hr
         output_path.mkdir(parents=True, exist_ok=True)
-        output_json = output_path / f"{file_stem}.json"
+        output_json = output_path / f"{current_time}.json"
 
-
-        # Truncate the scores to 4 decimal places
-        scores = [[round(score, 4) for score in score_list] for score_list in scores]
-
-        debug(f"Saving predictions to {file_stem}.json")
+        debug(f"Saving predictions to {current_time}.json")
         with output_json.open("w") as f:
             json.dump({
                 "filenames": filenames,
@@ -93,6 +88,6 @@ def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, fil
             }, f, indent=4)
         debug(f"Predictions saved to {output_json}")
     except Exception as e:
-        error_message = f"Error saving predictions to {output_json}: {e}"
+        error_message = f"Error saving predictions: {e}"
         info(error_message)
         return error_message

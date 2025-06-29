@@ -105,7 +105,8 @@ process_atolla:
       'http://localhost:8000/knn/3/testproject' \
       -H 'accept: application/json' \
       -H 'Content-Type: multipart/form-data' \
-      -F 'files=@atolla1.png;type=image/png')
+      -F 'files=@atolla1.png;type=image/png' \
+      -F 'files=@atolla2.png;type=image/png')
 
     id=$(echo "$response" | sed -n 's/.*"job_id":"\([^"]*\)".*/\1/p')
     echo "Job ID extracted: $id"
