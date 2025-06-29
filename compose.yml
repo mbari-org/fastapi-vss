@@ -71,6 +71,7 @@ services:
       - log-vss-rq-worker:/app/logs
       - ./data:/data
       - ./tests:/app/tests
+    user: ${MLDEVOPS_GID}:${MLDEVOPS_UID}
     depends_on:
       - fastapi
     networks:
