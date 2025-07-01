@@ -10,6 +10,9 @@ LABEL license="Apache License 2.0"
 ARG GIT_VERSION=latest
 ARG IMAGE_URI=mbari/fastapi-vss:${GIT_VERSION}
 
+# curl needed for health-check
+RUN apt-get update && apt-get install -y curl && apt-get clean
+
 RUN python3 -m venv /venv
 
 # Set environment variables

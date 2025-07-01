@@ -3,72 +3,62 @@
 # Description: Worker task file for processing images with Vision Transformer (ViT) models
 import gc
 import json
+import logging
 import os
+import traceback
 from datetime import datetime
 from pathlib import Path
 from typing import List
 
 import redis
+from rq.local import LocalStack
+from rq.worker import SimpleWorker
 
-from app.logger import info, debug
+from app.config import init_config
 from app.predictors.process_vits import ViTWrapper
-from app.config import BATCH_SIZE, init_config
 
-config = init_config()
-predictors = {}
-initialized = False
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+logger.addHandler(console_handler)
+info = logger.info
+debug = logger.debug
+err = logger.error
 
+_predictor_stack = LocalStack()
 
-def init_predictors() -> dict[str, ViTWrapper]:
-    """
-    Initialize predictors for each project defined in the configuration.
-    Connects to Redis and sets up the ViTWrapper for each project.
-    """
-    global predictors, initialized
-    if initialized:
-        return predictors
+class MyWorker(SimpleWorker):
 
-    info("Initializing predictors...")
+    def __init__(self, project, *args, **kwargs):
+        super(MyWorker, self).__init__(*args, **kwargs)
+        self.project = project
 
-    if not config:
-        raise ValueError("Configuration is empty. Please check your config file.")
-
-    password = os.getenv("REDIS_PASSWD")
-    if not password:
-        raise ValueError("REDIS_PASSWD environment variable is not set. Please set it to connect to Redis.")
-
-    info(f"Found {len(config.keys())} projects in the configuration.")
-    for project in config.keys():
+    def work(self, burst=False, logging_level='WARN'):
+        config = init_config(self.project)
+        project = self.project
         redis_host = config[project]["redis_host"]
         redis_port = config[project]["redis_port"]
         v_config = config[project]
-        info(f"Connecting to redis at {redis_host}:{redis_port}")
-        info(f"Redis queue for project {project} created successfully")
+        password = os.getenv("REDIS_PASSWD", None)
+        batch_size = int(os.getenv("BATCH_SIZE", 32))
+        print(f"Connecting to redis at {redis_host}:{redis_port}")
+        print(f"Redis queue for project {project} created successfully")
         redis_conn = redis.Redis(host=redis_host, port=redis_port, password=password)
-        predictors[project] = ViTWrapper(redis_conn, device=v_config["device"], model_name=v_config["model"], reset=False, batch_size=BATCH_SIZE)
-
-    initialized = True
-    return predictors
+        predictor = ViTWrapper(redis_conn, device=v_config["device"], model_name=v_config["model"], reset=False, batch_size=batch_size)
+        _predictor_stack.push(predictor)
+        return super().work(burst, logging_level)
 
 
 def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, filenames: List[str]):
-    info(f"Predicting on {len(image_list)} images with top_n={top_n} using model {v_config['model']} on device {v_config['device']}")
-
-    global predictors
-    if not predictors:
-        init_predictors()
-    v = predictors.get(v_config.get("project"))
-    if not v:
-        message = f"Predictor for project {v_config.get('project')} not found. Please initialize predictors first."
-        info(message)
-        return message
-
     try:
-        predictions, scores, ids = v.predict(image_list, top_n)
+        info(f"Predicting on {len(image_list)} images with top_n={top_n} using model {v_config['model']} on device {v_config['device']}")
+        predictor = _predictor_stack.top
+        predictions, scores, ids = predictor.predict(image_list, top_n)
         gc.collect()
         del image_list
 
-        # Make a subdirectory based on the current date and time (hourly granularity)
+        # Use the current date and time (hourly granularity) for output directory and time with microseconds for the filename to ensure uniqueness
         current_time_hr = datetime.now().strftime("%Y%m%d_%H0000")
         current_time = datetime.now().strftime("%Y%m%d_%H%M%S.%f")
 
@@ -88,6 +78,6 @@ def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, fil
             }, f, indent=4)
         debug(f"Predictions saved to {output_json}")
     except Exception as e:
-        error_message = f"Error saving predictions: {e}"
+        error_message = f"Error during prediction: {e}\n{traceback.format_exc()}"
         info(error_message)
         return error_message

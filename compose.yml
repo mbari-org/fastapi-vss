@@ -10,7 +10,7 @@ services:
     image: mbari/fastapi-vss:${GIT_VERSION}
     container_name: fastapi-vss
     healthcheck:
-      test: ["CMD-SHELL", "curl -s http://fastapi-vss:8000/health | grep '\"status\":\"ok\"'"]
+      test: [ "CMD", "curl", "-f", "http://fastapi-vss:8000/health" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -19,16 +19,16 @@ services:
     command:
       - /bin/sh
       - -c
-      - uvicorn src.app.main:app --host 0.0.0.0 --port 80
+      - uvicorn src.app.main:app --host 0.0.0.0 --port 8000
+#      - uvicorn src.app.main:app --host 0.0.0.0 --port 80 --reload --reload-dir /app/src
     ports:
-      - "8000:80"
+      - "8000:8000"
     environment:
-      - LOG_DIR=/app/logs
+      - LOG_DIR=/tmp/logs
     volumes:
       - ${CONFIG_PATH}:${CONFIG_PATH}
-      - ./data:/data
-      - log-vss:/app/logs
-    user: ${MLDEVOPS_GID}:${MLDEVOPS_UID}
+      - log:/tmp/logs
+      - ./src:/app/src
     restart: always
     depends_on:
       - redis
@@ -60,25 +60,42 @@ services:
     container_name: rq-worker-vss
     environment:
       - REDIS_PASSWD=${REDIS_PASSWD}
-      - REDIS_URL=redis://default:${REDIS_PASSWD}@redis:6379
-      - LOG_DIR=/app/logs
-    entrypoint:
-        - /bin/sh
-        - -c
-        - python /app/tests/load.py && rq worker --url redis://default:${REDIS_PASSWD}@redis:6379 default
+      - LOG_DIR=/tmp/logs
+    command:
+      - /bin/sh
+      - -c
+      - python /app/src/app/start_worker.py
     volumes:
       - ${CONFIG_PATH}:${CONFIG_PATH}
-      - log-vss-rq-worker:/app/logs
-      - ./data:/data
-      - ./tests:/app/tests
-    user: ${MLDEVOPS_GID}:${MLDEVOPS_UID}
+      - worker-data:/data
+      - rq-worker-log:/tmp/logs
+#      - ./src:/app/src
     depends_on:
       - fastapi
     networks:
       - vss
+  loader:
+    image: mbari/fastapi-vss:${GIT_VERSION}
+    container_name: rq-worker-loader
+    env_file:
+      - .env
+    command:
+        - /bin/sh
+        - -c
+        - python /app/tests/load.py
+    environment:
+      - REDIS_PASSWD=${REDIS_PASSWD}
+      - REDIS_HOST=redis
+    volumes:
+      - ./tests:/app/tests
+    depends_on:
+        - redis
+    networks:
+        - vss
 volumes:
   redis-data:
-  log-vss:
-  log-vss-rq-worker:
+  log:
+  rq-worker-log:
+  worker-data:
 networks:
   vss:

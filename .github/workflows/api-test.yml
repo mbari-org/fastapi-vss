@@ -2,7 +2,7 @@ name: API Integration Test
 
 on:
   push:
-    branches: [dev]
+    branches: [main]
   pull_request:
 
 jobs:
@@ -17,16 +17,19 @@ jobs:
 
       - name: Set CODE_PATH and create logs directory
         run: |
-          CODE_PATH="$(pwd)"
-          sed -i.bak "/^CONFIG_PATH=/d;/^LOG_PATH=/d" example.env
-          echo CONFIG_PATH=${CODE_PATH}/config >> example.env
-          echo LOG_PATH=${CODE_PATH}/logs >> example.env
-          USER_ID=$(id -u)
-          GROUP_ID=$(id -g)
-          echo MLDEVOPS_UID=${USER_ID} >> example.env
-          echo MLDEVOPS_GID=${GROUP_ID} >> example.env
-          cp example.env  .env
-          mkdir -p logs
+          
+          USER_UID=$(id -u)
+          USER_GID=$(id -g)
+          CONFIG_DIR=$(pwd)/config
+          
+          cat > .env <<EOF
+          MLDEVOPS_GID=$USER_GID
+          MLDEVOPS_UID=$USER_UID
+          REDIS_PASSWD=xvN2ErdyY4
+          LOG_LEVEL=INFO
+          GIT_VERSION=latest
+          CONFIG_PATH=$CONFIG_DIR
+          EOF
           server_name=127.0.0.1
           sed -i.bak "s/localhost/${server_name}/g" test_main.http
 
@@ -37,14 +40,15 @@ jobs:
       - name: Install httpyac
         run: npm install -g httpyac
 
-      - name: Delay 30 seconds for services to start
+      - name: Delay 10 seconds for services to start
         run: |
-            echo "Waiting 30 seconds for services to start..."
-            sleep 30
+            echo "Waiting 10 seconds for services to start..."
+            sleep 10
 
       - name: Print the docker logs
         run: |
           docker logs fastapi-vss
+          docker logs rq-worker-vss
 
       - name: Run HTTP tests
         run: httpyac send -a test_main.http

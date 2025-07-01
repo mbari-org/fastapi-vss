@@ -1,6 +1,6 @@
 # fastapi-vss, Apache-2.0 license
 # Filename: predictors/process_vits.py
-# Description: Process images with Vision Transformer (ViT) model and store/search in Redis
+# Description: Process images with Vision Transformer (ViT) model and search by KNN embeddings in Redis vector store
 
 import numpy as np
 import redis
@@ -9,8 +9,16 @@ from PIL import Image
 from transformers import AutoModel, AutoImageProcessor  # type: ignore
 from typing import List
 
-from app.logger import info
 from app.predictors.vector_similarity import VectorSimilarity
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
+debug = logging.debug
+info = logging.info
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
+logger.addHandler(console)
 
 
 class ViTWrapper:
@@ -29,16 +37,22 @@ class ViTWrapper:
         return self.model.config.hidden_size
 
     def preprocess_images(self, image_paths: List[str]):
-        info(f"Preprocessing {len(image_paths)} images")
+        debug(f"Preprocessing {len(image_paths)} images")
         images = [Image.open(image_path).convert("RGB") for image_path in image_paths]
         inputs = self.processor(images=images, return_tensors="pt").to(self.device)
+        debug(f"Done preprocessing {len(image_paths)} images, batch size is {inputs['pixel_values'].shape[0]}")
         return inputs
 
     def get_image_embeddings(self, inputs: torch.Tensor):
         """get embeddings for a batch of images"""
+        debug(f"Getting embeddings for batch of size {inputs['pixel_values'].shape[0]}")
+        debug(inputs['pixel_values'].shape)  # Should be (B, 3, H, W)
+
         with torch.no_grad():
             embeddings = self.model(**inputs)
+        info(f"Done getting embeddings for batch")
         batch_embeddings = embeddings.last_hidden_state[:, 0, :].cpu().numpy()
+        info(f"Batch embeddings shape: {batch_embeddings.shape}")
         return np.array(batch_embeddings)
 
     def predict(self, image_paths: List[str], top_n: int = 1) -> tuple[list[list[str]], list[list[float]], list[list[str]]]:
@@ -52,6 +66,7 @@ class ViTWrapper:
             batch = image_paths[i : i + self.batch_size]
             images = self.preprocess_images(batch)
             embeddings = self.get_image_embeddings(images)
+            info(f'Searching for {len(embeddings)} embeddings in Redis')
             for j, emb in enumerate(embeddings):
                 r = self.vs.search_vector(emb.tobytes(), top_n=top_n)
                 # Data is doc:label:id - split it into parts

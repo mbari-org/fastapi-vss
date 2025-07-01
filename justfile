@@ -21,9 +21,14 @@ install: setup-env
 setup-env:
     #!/usr/bin/env bash
     CODE_PATH="$(pwd)"
+    MLDEVOPS_UID=$(id -u)
+    MLDEVOPS_GID=$(id -g)
     sed -i.bak "/^CONFIG_PATH=/d;/^LOG_PATH=/d" example.env
+    sed -i.bak "/^MLDEVOPS_UID=/d;/^MLDEVOPS_GID=/d" example.env
     echo CONFIG_PATH=${CODE_PATH}/config >> example.env
     echo LOG_PATH=${CODE_PATH}/logs >> example.env
+    echo MLDEVOPS_UID=${MLDEVOPS_UID} >> example.env
+    echo MLDEVOPS_GID=${MLDEVOPS_GID} >> example.env
     cp example.env .env
     mkdir -p logs
 
