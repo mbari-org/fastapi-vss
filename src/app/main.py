@@ -66,7 +66,7 @@ async def root():
     return {"message": f"Welcome to Fast-VSS API version {__version__}"}
 
 
-@app.get("/health")
+@app.get("/health", status_code=status.HTTP_200_OK)
 async def health():
     """
     Health check endpoint to verify if the API is running
@@ -120,7 +120,7 @@ async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str 
         redis_queue = queues[project]
 
         info(f"Enqueuing job for {len(images)} images with top_n={top_n} in project {project}")
-        job = redis_queue.enqueue(predict_on_cpu_or_gpu, v_config, images, top_n, filenames)
+        job = redis_queue.enqueue(predict_on_cpu_or_gpu, v_config, images, top_n, filenames, result_ttl=10)
         debug(f"Enqueued job with ID {job.get_id()} for project {project}")
         return {"job_id": job.get_id()}
     except Exception as e:
