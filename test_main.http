@@ -46,7 +46,7 @@ Accept: application/json
 ###
 
 ### Get database IDs for a project
-POST http://localhost:8000/ids/testproject
+GET http://localhost:8000/ids/testproject
 Accept: application/json
 
 ###

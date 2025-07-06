@@ -83,16 +83,3 @@ class ViTWrapper:
                 scores.append([round(float(x["score"]),4) for x in r])
 
         return predictions, scores, ids
-
-    def get_ids(self) -> tuple[list[str], list[str]]:
-        """Get all the ids in the index"""
-        all_keys = self.vs.get_all_keys()
-        # Data is formatted <doc:label:id>, e.g. doc:Otter:12467, doc:Otter:12467, etc.
-        classes = []
-        ids = []
-        for i, key in enumerate(all_keys):
-            str = key.decode("utf-8").split(":")
-            if len(str) == 3:
-                classes.append(str[1])
-                ids.append(str[2])
-        return classes, ids

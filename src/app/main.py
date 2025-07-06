@@ -18,6 +18,7 @@ from app import logger
 from app.config import init_config, BATCH_SIZE
 from app.logger import info, debug
 from app.predictors.tasks import predict_on_cpu_or_gpu
+from app.predictors.vector_similarity import VectorSimilarity
 
 log_path = os.getenv("LOG_DIR", "logs")
 logger = logger.create_logger_file(log_path)
@@ -87,15 +88,26 @@ async def get_projects():
     return {"projects": list(config.keys())}
 
 
-@app.post("/ids/{project}", status_code=status.HTTP_200_OK)
+@app.get("/ids/{project}", status_code=status.HTTP_200_OK)
 async def get_ids(project: str = DEFAULT_PROJECT):
     # Check if the project name is in the config
     if project not in config.keys():
         return {"error": f"Invalid project name {project}"}
 
-    v = config[project]["v"]
     try:
-        classes, ids = v.get_ids()
+        # Connect to the Redis queue for the project
+        redis_conn = connections[project]
+        info(f"Fetching IDs for project {project}")
+        all_keys = redis_conn.keys(f"{VectorSimilarity.DOC_PREFIX}*")
+        # Data is formatted <doc:label:id>, e.g. doc:Otter:12467, doc:Otter:12467, etc.
+        classes = []
+        ids = []
+        for i, key in enumerate(all_keys):
+            str = key.decode("utf-8").split(":")
+            if len(str) == 3:
+                classes.append(str[1])
+                ids.append(str[2])
+
         return {"ids": ids, "classes": classes}
     except Exception as e:
         return {"error": f"Error getting ids: {e}"}

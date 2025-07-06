@@ -19,7 +19,7 @@ services:
     command:
       - /bin/sh
       - -c
-      - uvicorn src.app.main:app --host 0.0.0.0 --port 8000
+      - uvicorn src.app.main:app --host 0.0.0.0 --port 80 --reload --reload-dir /app/src
     ports:
       - "8000:8000"
     environment:
@@ -27,6 +27,7 @@ services:
     volumes:
       - ${CONFIG_PATH}:${CONFIG_PATH}
       - log:/tmp/logs
+      - ./src:/app/src
     restart: always
     depends_on:
       - redis
@@ -67,7 +68,9 @@ services:
       - ${CONFIG_PATH}:${CONFIG_PATH}
       - worker-data:/data
       - rq-worker-log:/tmp/logs
+      - ./src:/app/src
     depends_on:
+      -
       - fastapi
     networks:
       - vss

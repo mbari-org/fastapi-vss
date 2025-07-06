@@ -60,6 +60,3 @@ class VectorSimilarity:
         except Exception as e:
             err(f"Error searching vector: {e}")
             return []
-
-    def get_all_keys(self):
-        return self.r.keys(f"{self.DOC_PREFIX}*")

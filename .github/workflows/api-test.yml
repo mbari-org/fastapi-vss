@@ -15,35 +15,26 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
 
-      - name: Set CODE_PATH and create logs directory
+      - name: Set environment
         run: |
-          
-          USER_UID=$(id -u)
-          USER_GID=$(id -g)
           CONFIG_DIR=$(pwd)/config
-          
           cat > .env <<EOF
-          MLDEVOPS_GID=$USER_GID
-          MLDEVOPS_UID=$USER_UID
           REDIS_PASSWD=xvN2ErdyY4
           LOG_LEVEL=INFO
           GIT_VERSION=latest
           CONFIG_PATH=$CONFIG_DIR
           EOF
-          server_name=127.0.0.1
-          sed -i.bak "s/localhost/${server_name}/g" test_main.http
 
       - name: Start Docker services
-        run: |
-          docker compose -f compose.yml up -d
+        run: docker compose -f compose.yml up -d
 
       - name: Install httpyac
         run: npm install -g httpyac
 
-      - name: Delay 10 seconds for services to start
+      - name: Delay 20 seconds for services to start
         run: |
-            echo "Waiting 10 seconds for services to start..."
-            sleep 10
+          echo "Waiting 20 seconds for services to start..."
+          sleep 20
 
       - name: Print the docker logs
         run: |
