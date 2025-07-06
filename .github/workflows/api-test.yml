@@ -1,0 +1,45 @@
+name: API Integration Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+
+      - name: Set environment
+        run: |
+          CONFIG_DIR=$(pwd)/config
+          cat > .env <<EOF
+          REDIS_PASSWD=xvN2ErdyY4
+          LOG_LEVEL=INFO
+          GIT_VERSION=latest
+          CONFIG_PATH=$CONFIG_DIR
+          EOF
+
+      - name: Start Docker services
+        run: docker compose -f compose.yml up -d
+
+      - name: Install httpyac
+        run: npm install -g httpyac
+
+      - name: Delay 20 seconds for services to start
+        run: |
+          echo "Waiting 20 seconds for services to start..."
+          sleep 20
+
+      - name: Print the docker logs
+        run: |
+          docker logs fastapi-vss
+          docker logs rq-worker-vss
+
+      - name: Run HTTP tests
+        run: httpyac send -a test_main.http

@@ -10,3 +10,4 @@ bin/
 src/aidata
 .github/
 .gitmodules
+*.pyc

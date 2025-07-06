@@ -1,4 +1,4 @@
-# mbari_aidata, Apache-2.0 license
+# fastapi-vss, Apache-2.0 license
 # Filename: predictors/vector_similarity.py
 # Description: Runs operations on Redis database with RediSearch on embedded vectors
 import redis
@@ -27,7 +27,6 @@ class VectorSimilarity:
                 self.r.ft(self.INDEX_NAME).dropindex(delete_documents=True)
                 self.r.flushall()
                 self.reset(vector_dimensions)
-                exit(0)
         except redis.exceptions.ResponseError:
             if reset_db:
                 self.reset(vector_dimensions)
@@ -54,15 +53,10 @@ class VectorSimilarity:
         self.r.hset(doc_key, mapping={"vector": vector, "tag": tag})
 
     def search_vector(self, vector: list, top_n: int):
-        query = (
-            Query(f"*=>[KNN {top_n} @vector $vec as score]")
-            .sort_by("score")
-            .return_fields("id", "score")
-            .paging(0, top_n)
-            .dialect(2)
-        )
-        query_params = {"vec": vector}
-        return self.r.ft(self.INDEX_NAME).search(query, query_params).docs
-
-    def get_all_keys(self):
-        return self.r.keys(f"{self.DOC_PREFIX}*")
+        try:
+            query = Query(f"*=>[KNN {top_n} @vector $vec as score]").sort_by("score").return_fields("id", "score").paging(0, top_n).dialect(2)
+            query_params = {"vec": vector}
+            return self.r.ft(self.INDEX_NAME).search(query, query_params).docs
+        except Exception as e:
+            err(f"Error searching vector: {e}")
+            return []
