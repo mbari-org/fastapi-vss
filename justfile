@@ -58,17 +58,30 @@ run-server: kill-uvicorn
 run-act:
     act -P ubuntu-latest=catthehacker/ubuntu:act-latest -j test --container-architecture linux/amd64
 
+# Run the FastAPI server in development mode with Docker Compose
 run-server-dev: setup-env
     #!/usr/bin/env bash
     tag=$(git describe --tags --always)
-    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.dev.yml down --remove-orphans && \
+    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.dev.yml down && \
     GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.dev.yml up -d
+
+#  Stop the FastAPI server in development mode with Docker Compose
+stop-server-dev:
+    #!/usr/bin/env bash
+    tag=$(git describe --tags --always)
+    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.dev.yml down
 
 run-server-prod: setup-env
     #!/usr/bin/env bash
     tag=$(git describe --tags --always)
     GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.yml down --remove-orphans && \
     GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.yml up -d
+
+#  Stop the FastAPI server in development mode with Docker Compose
+stop-server-prod:
+    #!/usr/bin/env bash
+    tag=$(git describe --tags --always)
+    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.yml down
 
 # Build the Docker image without CUDA support for development
 build-docker:
@@ -94,15 +107,17 @@ build-and-push:
 
 # Default recipe
 default:
-    just run-server
+    just run-server-dev
 
+# Quick test to fetch all IDs from the test project
 test_all_ids:
     #!/usr/bin/env bash
-    curl -X 'POST' \
+    curl -X 'GET' \
       'http://localhost:8000/ids/testproject' \
       -H 'accept: application/json' \
       -d ''
 
+# Quick test to fetch all IDs from the test project
 process_atolla:
     #!/usr/bin/env bash
     cd ./tests/images/atolla

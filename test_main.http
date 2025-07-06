@@ -70,9 +70,3 @@ Content-Type: image/png
         client.assert(body.job_id || body.error, "Expected either a job ID or an error message");
     });
 %}
-
-###
-
-### Get job result (replace job_id and project)
-#GET http://localhost:8000/predict/job/your_job_id/your_project_name
-#Accept: application/json
