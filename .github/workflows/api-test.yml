@@ -2,7 +2,7 @@ name: API Integration Test
 
 on:
   push:
-    branches: [main]
+    branches: [dev, main]
   pull_request:
 
 jobs:

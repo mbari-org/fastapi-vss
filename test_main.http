@@ -1,7 +1,7 @@
 # Test FastAPI endpoints
 
 ### Root endpoint
-GET http://localhost:8000/
+GET http://127.0.0.1:8000/
 Accept: application/json
 
 
@@ -13,7 +13,7 @@ Accept: application/json
 ###
 
 ### Health check
-GET http://localhost:8000/health
+GET http://127.0.0.1:8000/health
 Accept: application/json
 
 > {%
@@ -26,13 +26,13 @@ Accept: application/json
 %}###
 
 ### GPU memory
-GET http://localhost:8000/gpu-memory
+GET http://127.0.0.1:8000/gpu-memory
 Accept: application/json
 
 ###
 
 ### List projects
-GET http://localhost:8000/projects
+GET http://127.0.0.1:8000/projects
 Accept: application/json
 
 > {%
@@ -46,13 +46,13 @@ Accept: application/json
 ###
 
 ### Get database IDs for a project
-GET http://localhost:8000/ids/testproject
+GET http://127.0.0.1:8000/ids/testproject
 Accept: application/json
 
 ###
 
 ### KNN prediction
-POST http://localhost:8000/knn/3/testproject
+POST http://127.0.0.1:8000/knn/3/testproject
 Accept: application/json
 Content-Type: multipart/form-data; boundary=boundary
 
