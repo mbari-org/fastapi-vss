@@ -38,6 +38,14 @@ jobs:
             echo "Skipping release steps."
           fi
 
+      - if: steps.release-status.outputs.released == 'true'
+        name: Release to GitHub with Changelog
+        id: github-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          semantic-release version --changelog
+
       - name: docker push version
         if: steps.semantic.outputs.released == 'true'
         run: |
