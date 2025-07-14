@@ -4,7 +4,6 @@
 # This needs to be imported first in order to set up the logger and other configuration.
 import logging
 from pathlib import Path
-import tempfile
 
 from typing import TypedDict, Any
 import torch
@@ -34,9 +33,10 @@ if not os.getenv("CONFIG_PATH"):
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", 32))
 
 # Get the path of this file
-CONFIG_PATH = Path(os.getenv("CONFIG_PATH"), Path(__file__).parent.parent.parent.parent  / "config")
+CONFIG_PATH = Path(os.getenv("CONFIG_PATH"), Path(__file__).parent.parent.parent.parent / "config")
 
 print(f"Using configuration path: {CONFIG_PATH}")
+
 
 class VConfig(TypedDict):
     redis_port: str
@@ -73,7 +73,7 @@ def init_config(target_project=None) -> dict[Any, dict[str, device | Any]]:
                 "model": data["vss"]["model"],
                 "device": device,
                 "project": project,
-                "output_dir":  data["vss"]["output_dir"]
+                "output_dir": data["vss"]["output_dir"],
             }
 
     return config

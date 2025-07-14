@@ -15,26 +15,23 @@ logger = logging.getLogger(__name__)
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.DEBUG)
 logger.addHandler(console_handler)
-info = logger.info
-debug = logger.debug
-err = logger.error
 
 
 def start_worker_for_project(project, redis_host, redis_port, password):
     # global predictors
     redis_conn = redis.Redis(host=redis_host, port=redis_port, password=password)
     info(f">>> Starting worker for project {project} <<<")
-    worker = MyWorker(project, queues=['default'], connection=redis_conn)
+    worker = MyWorker(project, queues=["default"], connection=redis_conn)
     info(f">>> Worker for project {project} started <<<")
     worker.work()
     info(f">>> Worker for project {project} finished <<<")
-
 
 
 if __name__ == "__main__":
     processes = []
 
     from app.config import init_config
+
     config = init_config()
 
     for project, v_config in config.items():

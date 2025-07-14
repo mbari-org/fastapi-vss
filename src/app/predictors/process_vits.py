@@ -12,6 +12,7 @@ from typing import List
 from app.predictors.vector_similarity import VectorSimilarity
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 debug = logging.debug
 info = logging.info
@@ -46,11 +47,11 @@ class ViTWrapper:
     def get_image_embeddings(self, inputs: torch.Tensor):
         """get embeddings for a batch of images"""
         debug(f"Getting embeddings for batch of size {inputs['pixel_values'].shape[0]}")
-        debug(inputs['pixel_values'].shape)  # Should be (B, 3, H, W)
+        debug(inputs["pixel_values"].shape)  # Should be (B, 3, H, W)
 
         with torch.no_grad():
             embeddings = self.model(**inputs)
-        info(f"Done getting embeddings for batch")
+        info("Done getting embeddings for batch")
         batch_embeddings = embeddings.last_hidden_state[:, 0, :].cpu().numpy()
         info(f"Batch embeddings shape: {batch_embeddings.shape}")
         return np.array(batch_embeddings)
@@ -66,7 +67,7 @@ class ViTWrapper:
             batch = image_paths[i : i + self.batch_size]
             images = self.preprocess_images(batch)
             embeddings = self.get_image_embeddings(images)
-            info(f'Searching for {len(embeddings)} embeddings in Redis')
+            info(f"Searching for {len(embeddings)} embeddings in Redis")
             for j, emb in enumerate(embeddings):
                 r = self.vs.search_vector(emb.tobytes(), top_n=top_n)
                 # Data is doc:label:id - split it into parts
@@ -80,6 +81,6 @@ class ViTWrapper:
                 predictions.append([b for b in batch_pred])
                 ids.append([i for i in batch_ids])
                 # Separate out the scores for each prediction - this is used later for voting
-                scores.append([round(float(x["score"]),4) for x in r])
+                scores.append([round(float(x["score"]), 4) for x in r])
 
         return predictions, scores, ids

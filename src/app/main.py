@@ -74,6 +74,7 @@ async def health():
     """
     return {"status": "ok", "version": __version__}
 
+
 @app.get("/gpu-memory")
 def gpu_memory():
     if not GPU_AVAILABLE:

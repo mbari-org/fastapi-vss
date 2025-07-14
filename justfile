@@ -9,6 +9,11 @@ set dotenv-load := true
 list:
     @just --list --unsorted
 
+
+# Run pre-commit hooks. Run this before committing code to ensure code quality.
+pre-commit:
+    pre-commit run --all-files
+
 # Setup the environment for development
 install: setup-env
     #!/usr/bin/env bash

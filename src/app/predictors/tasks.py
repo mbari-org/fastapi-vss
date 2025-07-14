@@ -28,13 +28,13 @@ err = logger.error
 
 _predictor_stack = LocalStack()
 
-class MyWorker(SimpleWorker):
 
+class MyWorker(SimpleWorker):
     def __init__(self, project, *args, **kwargs):
         super(MyWorker, self).__init__(*args, **kwargs)
         self.project = project
 
-    def work(self, burst=False, logging_level='WARN'):
+    def work(self, burst=False, logging_level="WARN"):
         config = init_config(self.project)
         project = self.project
         redis_host = config[project]["redis_host"]
@@ -70,12 +70,7 @@ def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, fil
 
         debug(f"Saving predictions to {current_time}.json")
         with output_json.open("w") as f:
-            json.dump({
-                "filenames": filenames,
-                "predictions": predictions,
-                "scores": scores,
-                "ids": ids
-            }, f, indent=4)
+            json.dump({"filenames": filenames, "predictions": predictions, "scores": scores, "ids": ids}, f, indent=4)
         debug(f"Predictions saved to {output_json}")
     except Exception as e:
         error_message = f"Error during prediction: {e}\n{traceback.format_exc()}"

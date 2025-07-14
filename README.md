@@ -2,7 +2,7 @@
 [![Python](https://img.shields.io/badge/language-Python-blue.svg)](https://www.python.org/downloads/)
 
 **fastapi-vss** A RESTful API for vector similarity search.  It uses the Python web framework [FastAPI](https://fastapi.tiangolo.com/)
-and the Redis database enabled as Vector database to provide a fast and efficient way to search for similar images 
+and the Redis database enabled as Vector database to provide a fast and efficient way to search for similar images
 based on vector embeddings in either real-time or batch mode.
 
 This accelerates machine learning workflows using vector similarity search with classification models.
