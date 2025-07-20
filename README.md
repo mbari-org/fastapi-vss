@@ -28,4 +28,4 @@ This can be used with a foundational model and does not require a custom trained
 
 ## Related work
 
-* https://github.com/mbari-org/aidata
+* https://github.com/mbari-org/vitstrain
