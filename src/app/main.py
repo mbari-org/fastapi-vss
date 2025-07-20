@@ -133,9 +133,10 @@ async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str 
         redis_queue = queues[project]
 
         info(f"Enqueuing job for {len(images)} images with top_n={top_n} in project {project}")
-        job = redis_queue.enqueue(predict_on_cpu_or_gpu, v_config, images, top_n, filenames, result_ttl=10)
-        debug(f"Enqueued job with ID {job.get_id()} for project {project}")
-        return {"job_id": job.get_id()}
+        job = redis_queue.enqueue(predict_on_cpu_or_gpu, v_config, images, top_n, filenames)
+        job_id = job.get_id()
+        debug(f"Enqueued job with ID {job_id} for project {project}")
+        return {"job_id": job_id, "Comment": f"Job results will be available for 5 minutes after completion. Use /predict/job/{job_id}/{project} to check status."}
     except Exception as e:
         return {"error": f"Error predicting images: {e}"}
 
@@ -145,12 +146,19 @@ async def get_job_result(job_id: str, project: str = DEFAULT_PROJECT):
     if project not in config.keys():
         return {"error": f"Invalid project name {project}"}
 
-    redis_conn = connections[project]
-    info(f"Fetching job status for job ID {job_id} in project {project}")
-    job = Job.fetch(job_id, connection=redis_conn)
-    if job.is_finished:
-        return {"status": "done", "result": job.return_value}
-    elif job.is_failed:
-        return {"status": "failed"}
-    else:
-        return {"status": "pending"}
+    try:
+        # Check if the job ID is valid
+        if not Job.exists(job_id, connection=connections[project]):
+            return {"error": f"Job ID {job_id} does not exist in project {project}"}
+
+        redis_conn = connections[project]
+        info(f"Fetching job status for job ID {job_id} in project {project}")
+        job = Job.fetch(job_id, connection=redis_conn)
+        if job.is_finished:
+            return {"status": "done", "result": job.return_value()}
+        elif job.is_failed:
+            return {"status": "failed"}
+        else:
+            return {"status": "pending"}
+    except Exception as e:
+        return {"error": f"Error fetching job status: {e}"}
