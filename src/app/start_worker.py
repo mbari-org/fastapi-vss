@@ -2,7 +2,7 @@
 # Filename: app/start_worker.py
 # Description: Run a worker to process tasks using RQ (Redis Queue) and Vision Transformer (ViT) models
 import logging
-from multiprocessing import Process
+import multiprocessing
 import os
 
 import redis
@@ -29,6 +29,7 @@ def start_worker_for_project(project, redis_host, redis_port, password):
 
 if __name__ == "__main__":
     processes = []
+    multiprocessing.set_start_method("spawn")
 
     from app.config import init_config
 
@@ -38,7 +39,7 @@ if __name__ == "__main__":
         redis_host = v_config["redis_host"]
         redis_port = v_config["redis_port"]
         password = os.getenv("REDIS_PASSWD")
-        p = Process(target=start_worker_for_project, args=(project, redis_host, redis_port, password))
+        p = multiprocessing.Process(target=start_worker_for_project, args=(project, redis_host, redis_port, password))
         p.start()
         processes.append(p)
 
