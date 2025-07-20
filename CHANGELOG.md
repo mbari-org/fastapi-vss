@@ -2,6 +2,19 @@
 
 
 
+## v0.9.1 (2025-07-20)
+
+### Documentation
+
+* docs: updated related work to more relevant repo ([`bd3b798`](https://github.com/mbari-org/fastapi-vss/commit/bd3b79853415fc2c2aac384efff2027197af9bae))
+
+### Fix
+
+* fix: return location of json output correctly and message about timeout ([`09019d1`](https://github.com/mbari-org/fastapi-vss/commit/09019d1f3390fe5e39e77aa0444dec56cab871b9))
+
+* fix: GPU spawn for safe multiprocessing ([`7003888`](https://github.com/mbari-org/fastapi-vss/commit/70038887020bfa8df66c5a778d5ee3f043782475))
+
+
 ## v0.9.0 (2025-07-07)
 
 ### Build
