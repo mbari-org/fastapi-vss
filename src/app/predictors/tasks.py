@@ -46,7 +46,7 @@ class MyWorker(SimpleWorker):
         return super().work(burst, logging_level)
 
 
-def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, filenames: List[str]) -> dict :
+def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, filenames: List[str]) -> dict:
     try:
         logger.info(f"Predicting on {len(image_list)} images with top_n={top_n} using model {v_config['model']} on device {v_config['device']}")
         predictor = _predictor_stack.top

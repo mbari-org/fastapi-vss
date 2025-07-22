@@ -21,6 +21,11 @@ install: setup-env
     conda activate fastapi-vss
     python -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
 
+# Run tests. Run this before committing code to ensure tests pass which are required before release
+test: run-server-prod
+    python -m pip install httpie
+    npm install -g httpyac
+    httpyac send -a test_main.http
 # Setup the environment for development
 setup-env:
     #!/usr/bin/env bash
@@ -76,6 +81,7 @@ stop-server-dev:
     tag=$(git describe --tags --always)
     GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.dev.yml down
 
+# Run the FastAPI server in production mode with Docker Compose
 run-server-prod: setup-env
     #!/usr/bin/env bash
     tag=$(git describe --tags --always)
