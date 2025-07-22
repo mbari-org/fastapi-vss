@@ -2,6 +2,13 @@
 
 
 
+## v0.10.1 (2025-07-22)
+
+### Fix
+
+* fix: trigger release with updated GITHUB_TOKEN ([`1624898`](https://github.com/mbari-org/fastapi-vss/commit/1624898de54fffc6f185e0861a511227b58d24b7))
+
+
 ## v0.10.0 (2025-07-22)
 
 ### Feature
