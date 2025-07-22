@@ -22,10 +22,6 @@ logger = logging.getLogger(__name__)
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.DEBUG)
 logger.addHandler(console_handler)
-info = logger.info
-debug = logger.debug
-err = logger.error
-
 _predictor_stack = LocalStack()
 
 
@@ -42,8 +38,8 @@ class MyWorker(SimpleWorker):
         v_config = config[project]
         password = os.getenv("REDIS_PASSWD", None)
         batch_size = int(os.getenv("BATCH_SIZE", 32))
-        print(f"Connecting to redis at {redis_host}:{redis_port}")
-        print(f"Redis queue for project {project} created successfully")
+        logger.info(f"Connecting to redis at {redis_host}:{redis_port}")
+        logger.info(f"Redis queue for project {project} created successfully")
         redis_conn = redis.Redis(host=redis_host, port=redis_port, password=password)
         predictor = ViTWrapper(redis_conn, device=v_config["device"], model_name=v_config["model"], reset=False, batch_size=batch_size)
         _predictor_stack.push(predictor)
@@ -52,7 +48,7 @@ class MyWorker(SimpleWorker):
 
 def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, filenames: List[str]) -> dict :
     try:
-        info(f"Predicting on {len(image_list)} images with top_n={top_n} using model {v_config['model']} on device {v_config['device']}")
+        logger.info(f"Predicting on {len(image_list)} images with top_n={top_n} using model {v_config['model']} on device {v_config['device']}")
         predictor = _predictor_stack.top
         predictions, scores, ids = predictor.predict(image_list, top_n)
         gc.collect()
@@ -63,15 +59,15 @@ def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, fil
         current_time = datetime.now().strftime("%Y%m%d_%H%M%S.%f")
 
         # Create output directory if it doesn't exist
-        output_dir = v_config.get("output_dir", "output")
+        output_dir = v_config.get("output_path", "output")
         output_path = Path(output_dir) / current_time_hr
         output_path.mkdir(parents=True, exist_ok=True)
         output_json = output_path / f"{current_time}.json"
 
-        debug(f"Saving predictions to {current_time}.json")
+        logger.debug(f"Saving predictions to {current_time}.json")
         with output_json.open("w") as f:
             json.dump({"filenames": filenames, "predictions": predictions, "scores": scores, "ids": ids}, f, indent=4)
-        debug(f"Predictions saved to {output_json}")
+        logger.debug(f"Predictions saved to {output_json}")
         output_final = {
             "filenames": filenames,
             "predictions": predictions,
@@ -82,5 +78,5 @@ def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, fil
         return output_final
     except Exception as e:
         error_message = f"Error during prediction: {e}\n{traceback.format_exc()}"
-        info(error_message)
+        logger.info(error_message)
         return error_message
