@@ -2,6 +2,13 @@
 
 
 
+## v0.10.2 (2025-07-22)
+
+### Fix
+
+* fix: per project config and renaming output_dir to output_path ([`314d282`](https://github.com/mbari-org/fastapi-vss/commit/314d282c18dfd75b36b59f630f732b6e779b63d7))
+
+
 ## v0.10.1 (2025-07-22)
 
 ### Fix
