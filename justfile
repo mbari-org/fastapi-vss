@@ -84,26 +84,26 @@ stop-server-dev:
 # Run the FastAPI server in production mode with Docker Compose
 run-server-prod: setup-env
     #!/usr/bin/env bash
-    tag=$(git describe --tags --always)
+    tag=$(git describe --tags --abbrev=0 | sed 's/^v//')
     GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.yml down --remove-orphans && \
     GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.yml up -d
 
 #  Stop the FastAPI server in development mode with Docker Compose
 stop-server-prod:
     #!/usr/bin/env bash
-    tag=$(git describe --tags --always)
+    tag=$(git describe --tags --abbrev=0 | sed 's/^v//')
     GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.yml down
 
 # Build the Docker image without CUDA support for development
 build-docker:
     #!/usr/bin/env bash
-    tag=$(git describe --tags --always)
+    tag=$(git describe --tags --abbrev=0 | sed 's/^v//')
     docker build -t mbari/fastapi-vss:$tag -f Dockerfile .
 
 # Build the CUDA Docker image for development
 build-docker-cuda:
     #!/usr/bin/env bash
-    tag=$(git describe --tags --always)
+    tag=$(git describe --tags --abbrev=0 | sed 's/^v//')
     docker build -t mbari/fastapi-vss:$tag -f Dockerfile.cuda .
 
 # Build the docker images for linux/amd64 and push to Docker Hub
