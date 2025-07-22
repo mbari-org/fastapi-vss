@@ -73,7 +73,7 @@ def init_config(target_project=None) -> dict[Any, dict[str, device | Any]]:
                 "model": data["vss"]["model"],
                 "device": device,
                 "project": project,
-                "output_dir": data["vss"]["output_dir"],
+                "output_path": data["vss"]["output_path"],
             }
 
     return config

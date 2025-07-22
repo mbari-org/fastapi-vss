@@ -44,7 +44,6 @@ for project in config.keys():
     redis_host = config[project]["redis_host"]
     redis_port = config[project]["redis_port"]
     device = config[project]["device"]
-    v_config = config[project]
     password = os.getenv("REDIS_PASSWD")
     info(f"Connecting to redis at {redis_host}:{redis_port}")
     redis_conn = redis.Redis(host=redis_host, port=redis_port, password=password)
@@ -133,7 +132,8 @@ async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str 
         redis_queue = queues[project]
 
         info(f"Enqueuing job for {len(images)} images with top_n={top_n} in project {project}")
-        job = redis_queue.enqueue(predict_on_cpu_or_gpu, v_config, images, top_n, filenames)
+        vss_config = config[project]
+        job = redis_queue.enqueue(predict_on_cpu_or_gpu, vss_config, images, top_n, filenames)
         job_id = job.get_id()
         debug(f"Enqueued job with ID {job_id} for project {project}")
         return {"job_id": job_id, "Comment": f"Job results will be available for 5 minutes after completion. Use /predict/job/{job_id}/{project} to check status."}
