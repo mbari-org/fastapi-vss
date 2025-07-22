@@ -2,6 +2,13 @@
 
 
 
+## v0.10.0 (2025-07-22)
+
+### Feature
+
+* feat: return json output with path ([`6d2dd87`](https://github.com/mbari-org/fastapi-vss/commit/6d2dd870efa935120dd025d991c3e6e841f57123))
+
+
 ## v0.9.1 (2025-07-20)
 
 ### Documentation
