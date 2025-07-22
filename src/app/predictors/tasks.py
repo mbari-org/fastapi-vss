@@ -50,7 +50,7 @@ class MyWorker(SimpleWorker):
         return super().work(burst, logging_level)
 
 
-def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, filenames: List[str]) -> str:
+def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, filenames: List[str]) -> dict :
     try:
         info(f"Predicting on {len(image_list)} images with top_n={top_n} using model {v_config['model']} on device {v_config['device']}")
         predictor = _predictor_stack.top
@@ -72,7 +72,14 @@ def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, fil
         with output_json.open("w") as f:
             json.dump({"filenames": filenames, "predictions": predictions, "scores": scores, "ids": ids}, f, indent=4)
         debug(f"Predictions saved to {output_json}")
-        return str(output_json)
+        output_final = {
+            "filenames": filenames,
+            "predictions": predictions,
+            "scores": scores,
+            "ids": ids,
+            "output_path": str(output_json),
+        }
+        return output_final
     except Exception as e:
         error_message = f"Error during prediction: {e}\n{traceback.format_exc()}"
         info(error_message)
