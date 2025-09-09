@@ -2,6 +2,13 @@
 
 
 
+## v0.10.4 (2025-09-09)
+
+### Performance
+
+* perf: added connection pool ([`ebf9f7b`](https://github.com/mbari-org/fastapi-vss/commit/ebf9f7bb46c6312dedc64c86d1222654788a250e))
+
+
 ## v0.10.3 (2025-09-09)
 
 ### Performance
