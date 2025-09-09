@@ -18,6 +18,12 @@ logger.addHandler(console_handler)
 
 
 def start_worker_for_project(project, redis_host, redis_port, password):
+    # Set CUDA optimizations
+    import torch
+    if torch.cuda.is_available():
+        torch.backends.cudnn.benchmark = True
+        torch.backends.cudnn.deterministic = False
+
     # global predictors
     redis_conn = redis.Redis(host=redis_host, port=redis_port, password=password)
     info(f">>> Starting worker for project {project} <<<")
