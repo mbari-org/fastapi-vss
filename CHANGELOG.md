@@ -2,6 +2,13 @@
 
 
 
+## v0.10.3 (2025-09-09)
+
+### Performance
+
+* perf: cuDNN optimizations ([`237c496`](https://github.com/mbari-org/fastapi-vss/commit/237c496d8f266f3b98cdf2ba35daebf792dc0729))
+
+
 ## v0.10.2 (2025-07-22)
 
 ### Fix
