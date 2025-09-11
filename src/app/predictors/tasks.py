@@ -24,14 +24,6 @@ console_handler.setLevel(logging.DEBUG)
 logger.addHandler(console_handler)
 _predictor_stack = LocalStack()
 
-REDIS_CONNECTION_POOL = redis.ConnectionPool(
-    max_connections=20,
-    retry_on_timeout=True,
-    socket_keepalive=True,
-    socket_keepalive_options={},
-    health_check_interval=30
-)
-
 class MyWorker(SimpleWorker):
     def __init__(self, project, *args, **kwargs):
         super(MyWorker, self).__init__(*args, **kwargs)
@@ -47,7 +39,7 @@ class MyWorker(SimpleWorker):
         batch_size = int(os.getenv("BATCH_SIZE", 32))
         logger.info(f"Connecting to redis at {redis_host}:{redis_port}")
         logger.info(f"Redis queue for project {project} created successfully")
-        redis_conn = redis.Redis(host=redis_host, port=redis_port, password=password, connection_pool=REDIS_CONNECTION_POOL)
+        redis_conn = redis.Redis(host=redis_host, port=redis_port, password=password)
         predictor = ViTWrapper(redis_conn, device=v_config["device"], model_name=v_config["model"], reset=False, batch_size=batch_size)
         _predictor_stack.push(predictor)
         return super().work(burst, logging_level)
