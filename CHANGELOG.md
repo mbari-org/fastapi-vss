@@ -2,6 +2,17 @@
 
 
 
+## v0.11.0 (2025-09-14)
+
+### Feature
+
+* feat: export metrics via Prometheus ([`9aada8a`](https://github.com/mbari-org/fastapi-vss/commit/9aada8a769d3e45f1f11f67aceacd226484897db))
+
+### Unknown
+
+* revert: remove connection pool which was a breaking change ([`075e8f7`](https://github.com/mbari-org/fastapi-vss/commit/075e8f7fecda00c0d1d5df43a20efecc5e5c3ae1))
+
+
 ## v0.10.4 (2025-09-09)
 
 ### Performance
