@@ -3,6 +3,7 @@ uvicorn
 python-multipart
 httpx
 Pillow
+prometheus-fastapi-instrumentator
 pydantic~=2.8.2
 pyyaml~=6.0.1
 numpy

@@ -10,6 +10,7 @@ import pynvml
 from fastapi import FastAPI, status, File, UploadFile
 from typing import List
 
+from prometheus_fastapi_instrumentator import Instrumentator
 from rq import Queue
 from rq.job import Job
 
@@ -30,6 +31,8 @@ app = FastAPI(
     description=f"""Run vector similarity search using Vision Transformer (ViT) models . Version {__version__}""",
     version=__version__,
 )
+
+Instrumentator().instrument(app).expose(app)
 
 info("Loading configuration")
 config = init_config()
