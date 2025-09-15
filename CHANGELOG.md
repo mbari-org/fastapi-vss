@@ -2,6 +2,17 @@
 
 
 
+## v0.11.1 (2025-09-15)
+
+### Documentation
+
+* docs: clean-up of README for clarity and add more badges, author. ([`e745171`](https://github.com/mbari-org/fastapi-vss/commit/e7451711ae1354493b43eded1e2408441bf6a2d0))
+
+### Fix
+
+* fix: correct semantic release version ([`097a87f`](https://github.com/mbari-org/fastapi-vss/commit/097a87f9204aaa0cf4fbcd6b9f9ba7255734ccbc))
+
+
 ## v0.11.0 (2025-09-14)
 
 ### Feature
