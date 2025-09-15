@@ -33,7 +33,9 @@ jobs:
           pip install python-semantic-release==8
           if semantic-release --noop --strict version
           then
-            echo "Releasing new version."
+            VERSION=$(semantic-release version --print)
+            echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+            echo "Releasing new version. Version: $RELEASE_VERSION"
           else
             echo "Skipping release steps."
           fi
@@ -47,9 +49,8 @@ jobs:
           semantic-release version --changelog
 
       - name: docker push version
-        if: steps.semantic.outputs.released == 'true'
+        if: steps.release-status.outputs.released == 'true'
         run: |
-          export RELEASE_VERSION=$(echo ${{ steps.semantic.outputs.tag }} | cut -c 2-)
           docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
           docker buildx create --name mybuilder --platform linux/amd64,linux/arm64 --use
           docker buildx build --no-cache --sbom=true --provenance=true --push --platform linux/amd64,linux/arm64 -t mbari/fastapi-vss:$RELEASE_VERSION -t mbari/fastapi-vss:latest --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION -f Dockerfile .
