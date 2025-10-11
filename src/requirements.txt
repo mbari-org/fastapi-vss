@@ -9,7 +9,7 @@ pyyaml~=6.0.1
 numpy
 async-timeout
 redis==5.0.7
-pynvml
+nvidia-ml-py
 transformers
 torch
 torchvision

@@ -1,6 +1,7 @@
 # fastapi-vss, Apache-2.0 license
 # Filename: predictors/process_vits.py
 # Description: Process images with Vision Transformer (ViT) model and search by KNN embeddings in Redis vector store
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import redis
@@ -39,8 +40,9 @@ class ViTWrapper:
 
     def preprocess_images(self, image_paths: List[str]):
         debug(f"Preprocessing {len(image_paths)} images")
-        images = [Image.open(image_path).convert("RGB") for image_path in image_paths]
-        inputs = self.processor(images=images, return_tensors="pt").to(self.device)
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            images = list(executor.map(lambda p: Image.open(p).convert("RGB"), image_paths))
+        inputs = self.processor(images=images, return_tensors="pt", device="cuda")
         debug(f"Done preprocessing {len(image_paths)} images, batch size is {inputs['pixel_values'].shape[0]}")
         return inputs
 
