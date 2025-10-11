@@ -2,6 +2,13 @@
 
 
 
+## v0.11.2 (2025-10-11)
+
+### Performance
+
+* perf: significant speed-up in preprocessing and replaced outdated pynvml with nvidia-ml-py ([`a7fd52d`](https://github.com/mbari-org/fastapi-vss/commit/a7fd52db9fad66af4abccc05e75c8e5b8b354434))
+
+
 ## v0.11.1 (2025-09-15)
 
 ### Documentation
