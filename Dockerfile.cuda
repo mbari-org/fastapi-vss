@@ -31,7 +31,7 @@ WORKDIR $APP_HOME
 RUN python3 -m pip install -r src/requirements.txt && \
     python3 -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
 
-RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu121
+RUN pip install --no-cache-dir torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cu121
 
 # run the FastAPI server, but allow it to be overridden with a different command
 WORKDIR $APP_HOME/src/app

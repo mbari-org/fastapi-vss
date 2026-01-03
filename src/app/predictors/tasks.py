@@ -5,10 +5,11 @@ import gc
 import json
 import logging
 import os
+import shutil
 import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import redis
 from rq.local import LocalStack

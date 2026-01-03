@@ -10,7 +10,7 @@ list:
     @just --list --unsorted
 
 
-# Run pre-commit hooks. Run this before committing code to ensure code quality.
+# Run pre-commit hooks. Run this before commiting code to ensure code quality.
 pre-commit:
     pre-commit run --all-files
 
@@ -70,16 +70,11 @@ run-act:
 
 # Run the FastAPI server in development mode with Docker Compose
 run-server-dev: setup-env
-    #!/usr/bin/env bash
-    tag=$(git describe --tags --always)
-    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.dev.yml down && \
-    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.dev.yml up -d
+    GIT_VERSION=latest COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.dev.yml up -d
 
 #  Stop the FastAPI server in development mode with Docker Compose
 stop-server-dev:
-    #!/usr/bin/env bash
-    tag=$(git describe --tags --always)
-    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.dev.yml down
+    GIT_VERSION=latest COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.dev.yml down && docker system prune -f
 
 # Run the FastAPI server in production mode with Docker Compose
 run-server-prod: setup-env
@@ -93,26 +88,24 @@ stop-server-prod:
     #!/usr/bin/env bash
     tag=$(git describe --tags --abbrev=0 | sed 's/^v//')
     GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.yml down
+    docker system prune -f
 
 # Build the Docker image without CUDA support for development
 build-docker:
-    #!/usr/bin/env bash
-    tag=$(git describe --tags --abbrev=0 | sed 's/^v//')
-    docker build -t mbari/fastapi-vss:$tag -f Dockerfile .
+    docker build -t mbari/fastapi-vss:latest -f Dockerfile .
 
 # Build the CUDA Docker image for development
 build-docker-cuda:
-    #!/usr/bin/env bash
-    tag=$(git describe --tags --abbrev=0 | sed 's/^v//')
-    docker build -t mbari/fastapi-vss:$tag -f Dockerfile.cuda .
+    docker build -t mbari/fastapi-vss:latest -f Dockerfile.cuda .
 
-# Build the docker images for linux/amd64 and push to Docker Hub
-build-and-push:
+# Build the cuda docker image for linux/amd64 and push to Docker Hub
+build-and-push-cuda:
     #!/usr/bin/env bash
     echo "Building and pushing the Docker image"
     RELEASE_VERSION=$(git describe --tags --abbrev=0)
     echo "Release version: $RELEASE_VERSION"
     RELEASE_VERSION=${RELEASE_VERSION:1}
+    RELEASE_VERSION=latest
     docker buildx create --name mybuilder --platform linux/amd64 --use
     docker buildx build --sbom=true --provenance=true --push --platform linux/amd64  -t mbari/fastapi-vss:$RELEASE_VERSION-cuda124 --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION -f Dockerfile.cuda .
 

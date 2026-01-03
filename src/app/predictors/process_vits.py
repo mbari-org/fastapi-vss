@@ -1,7 +1,6 @@
 # fastapi-vss, Apache-2.0 license
 # Filename: predictors/process_vits.py
 # Description: Process images with Vision Transformer (ViT) model and search by KNN embeddings in Redis vector store
-from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import redis
@@ -9,7 +8,7 @@ import torch
 from PIL import Image
 from transformers import AutoModel, AutoImageProcessor  # type: ignore
 from typing import List
-
+from concurrent.futures import ThreadPoolExecutor
 from app.predictors.vector_similarity import VectorSimilarity
 
 import logging
