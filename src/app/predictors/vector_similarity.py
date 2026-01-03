@@ -21,15 +21,16 @@ class VectorSimilarity:
         try:
             # check to see if index exists
             self.r.ft(self.INDEX_NAME).info()
-            err(f"Index {self.INDEX_NAME} already exists!")
             if reset_db:
                 info(f"Existing index found. Dropping and recreating the index with new dimensions {vector_dimensions}.")
                 self.r.ft(self.INDEX_NAME).dropindex(delete_documents=True)
-                self.r.flushall()
+                # self.r.flushall()  <-- This was dangerous if multiple projects share the same redis
                 self.reset(vector_dimensions)
+            else:
+                info(f"Index {self.INDEX_NAME} already exists.")
         except redis.exceptions.ResponseError:
-            if reset_db:
-                self.reset(vector_dimensions)
+            info(f"Index {self.INDEX_NAME} does not exist. Creating it.")
+            self.reset(vector_dimensions)
 
     def reset(self, vector_dimensions: int):
         schema = (
