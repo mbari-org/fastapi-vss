@@ -164,15 +164,15 @@ def init_config(target_project=None) -> dict[Any, dict[str, device | Any]]:
                 continue
 
             # Choose Redis host based on environment
-            # Prefer redis_internal_host if in Docker, otherwise use redis_host
+            # Prefer internal_host if in Docker, otherwise use host
             redis_config = data.get("redis", {})
-            if in_docker and "redis_internal_host" in redis_config:
-                redis_host = redis_config["redis_internal_host"]
-                info(f"Using redis_internal_host={redis_host} for project {project} (Docker environment)")
+            if in_docker and "internal_host" in redis_config:
+                redis_host = redis_config["internal_host"]
+                info(f"Using internal_host={redis_host} for project {project} (Docker environment)")
             else:
                 redis_host = redis_config["host"]
-                if in_docker and "redis_internal_host" not in redis_config:
-                    info(f"Using redis_host={redis_host} for project {project} (redis_internal_host not specified, falling back to redis_host)")
+                if in_docker and "internal_host" not in redis_config:
+                    info(f"Using host={redis_host} for project {project} (internal_host not specified, falling back to host)")
 
             config[project] = {
                 "redis_host": redis_host,
