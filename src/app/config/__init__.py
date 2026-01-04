@@ -66,6 +66,32 @@ def _deep_merge_dict(base: dict, override: dict) -> dict:
     return result
 
 
+def _is_in_docker() -> bool:
+    """
+    Detect if running inside a Docker container.
+    Checks for common Docker indicators.
+    """
+    # Check for environment variable (most reliable and explicit)
+    if os.getenv("IN_DOCKER") == "1":
+        return True
+    
+    # Check for Docker-specific files
+    if os.path.exists("/.dockerenv"):
+        return True
+    
+    # Check /proc/1/cgroup for Docker/containerd indicators
+    if os.path.exists("/proc/1/cgroup"):
+        try:
+            with open("/proc/1/cgroup", "r") as f:
+                content = f.read()
+                if "docker" in content.lower() or "containerd" in content.lower():
+                    return True
+        except (IOError, OSError):
+            pass
+    
+    return False
+
+
 def _fetch_config_from_url(url: str) -> dict:
     """
     Fetch YAML configuration from a URL with caching to avoid repeated network calls.
@@ -102,6 +128,13 @@ def init_config(target_project=None) -> dict[Any, dict[str, device | Any]]:
     """
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     config = {}
+    in_docker = _is_in_docker()
+    
+    if in_docker:
+        info("Detected Docker environment - using internal Redis hosts")
+    else:
+        info("Detected native environment - using external Redis hosts")
+    
     # Read the yaml configuration files for each project
     for yaml_path in CONFIG_PATH.rglob("*.yml"):
         if not yaml_path.exists():
@@ -130,9 +163,20 @@ def init_config(target_project=None) -> dict[Any, dict[str, device | Any]]:
             if target_project and project != target_project:
                 continue
 
+            # Choose Redis host based on environment
+            # Prefer redis_internal_host if in Docker, otherwise use redis_host
+            redis_config = data.get("redis", {})
+            if in_docker and "redis_internal_host" in redis_config:
+                redis_host = redis_config["redis_internal_host"]
+                info(f"Using redis_internal_host={redis_host} for project {project} (Docker environment)")
+            else:
+                redis_host = redis_config["host"]
+                if in_docker and "redis_internal_host" not in redis_config:
+                    info(f"Using redis_host={redis_host} for project {project} (redis_internal_host not specified, falling back to redis_host)")
+
             config[project] = {
-                "redis_host": data["redis"]["host"],
-                "redis_port": data["redis"]["port"],
+                "redis_host": redis_host,
+                "redis_port": redis_config["port"],
                 "model": data["vss"]["model"],
                 "device": device,
                 "project": project,
