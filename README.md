@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/language-Python-blue.svg)](https://www.python.org/downloads/)
 
 **fastapi-vss** is a RESTful API for vector similarity search. It uses the Python web framework FastAPI
- and Redis, the world’s fastest vector database.
+and Redis, the world’s fastest vector database.
 
 This API accelerates machine learning workflows by enabling vector similarity search with ViT (Vision Transformer) 
 classification models. It is especially useful for applications such as image retrieval, where you need to find images 

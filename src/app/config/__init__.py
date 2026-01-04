@@ -38,6 +38,9 @@ CONFIG_PATH = Path(os.getenv("CONFIG_PATH"), Path(__file__).parent.parent.parent
 
 print(f"Using configuration path: {CONFIG_PATH}")
 
+# Cache for remote configs fetched from URLs to avoid repeated network calls
+_remote_config_cache: dict[str, dict] = {}
+
 
 class VConfig(TypedDict):
     redis_port: str
@@ -65,17 +68,24 @@ def _deep_merge_dict(base: dict, override: dict) -> dict:
 
 def _fetch_config_from_url(url: str) -> dict:
     """
-    Fetch YAML configuration from a URL.
+    Fetch YAML configuration from a URL with caching to avoid repeated network calls.
     :param url: URL to fetch the configuration from
     :return: Parsed YAML configuration as a dictionary
     """
+    # Check cache first
+    if url in _remote_config_cache:
+        info(f"Using cached configuration from URL: {url}")
+        return _remote_config_cache[url]
+    
     try:
         info(f"Fetching configuration from URL: {url}")
         with httpx.Client(timeout=30.0) as client:
             response = client.get(url)
             response.raise_for_status()
             remote_data = yaml.safe_load(response.text)
-            info(f"Successfully fetched configuration from {url}")
+            # Cache the fetched config
+            _remote_config_cache[url] = remote_data
+            info(f"Successfully fetched and cached configuration from {url}")
             return remote_data
     except httpx.HTTPError as e:
         err(f"Failed to fetch configuration from {url}: {e}")
