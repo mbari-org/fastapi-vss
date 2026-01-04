@@ -29,9 +29,101 @@ unlabeled data, especially when only a limited number of labeled examples are av
 - Supports returning the database ID, assuming the ID is the stem of the filenames used to generate the vector references. This can be used to retrieve the original image. See the [internal MBARI AI docs](https://docs.mbari.org/internal/ai/) for more details.
 - 📦 Docker container for easy deployment
 - 📜 OpenAPI documentation for easy integration
+- 🔗 URL-based configuration support for remote config management
 
 ---
 ![](https://raw.githubusercontent.com/mbari-org/fastapi-vss/main/docs/imgs//restwebui.png)
+
+## Configuration
+
+The application uses YAML configuration files located in the directory specified by the `CONFIG_PATH` environment variable. Each configuration file defines settings for a project, including Redis connection details and VSS (Vector Similarity Search) model configuration.
+
+### Basic Configuration
+
+A typical configuration file (`config.yml`) looks like this:
+
+```yaml
+redis:
+  host: "redis"
+  port: 6379
+  project: "testproject"
+
+vss:
+  model: "google/vit-base-patch16-224"  # Hugging Face model ID or local path
+  project: "testproject"  # Project name for VSS
+  output_path: "/data/vss/outputs"  # Directory where VSS saves JSON results
+```
+
+### URL-Based Configuration
+
+You can override or extend your local configuration by fetching settings from a remote URL. This is useful for:
+- Centralized configuration management
+- Environment-specific settings (dev, staging, production)
+- Dynamic configuration updates without redeploying
+
+To use URL-based configuration, add a `config_url` field to your local `config.yml`:
+
+```yaml
+config_url: "https://example.com/remote-config.yml"
+
+redis:
+  host: "redis"
+  port: 6379
+  project: "testproject"
+
+vss:
+  model: "google/vit-base-patch16-224"
+  project: "testproject"
+  output_path: "/data/vss/outputs"
+```
+
+**How it works:**
+1. The application first reads your local `config.yml` file
+2. If a `config_url` field is present, it fetches the YAML configuration from that URL
+3. The remote configuration is merged with the local configuration using a deep merge
+4. **Remote values override local values** for matching keys
+5. Local values are preserved for keys that don't exist in the remote config
+6. The `config_url` field itself is removed from the final configuration (it's only used for fetching)
+
+**Example merge behavior:**
+
+Local config:
+```yaml
+config_url: "https://example.com/config.yml"
+redis:
+  host: "localhost"
+  port: 6379
+vss:
+  model: "local-model"
+  project: "myproject"
+```
+
+Remote config:
+```yaml
+redis:
+  host: "production-redis.example.com"
+vss:
+  model: "production-model"
+  output_path: "/prod/outputs"
+```
+
+Final merged config:
+```yaml
+redis:
+  host: "production-redis.example.com"  # Overridden by remote
+  port: 6379  # Preserved from local
+vss:
+  model: "production-model"  # Overridden by remote
+  project: "myproject"  # Preserved from local
+  output_path: "/prod/outputs"  # Added from remote
+```
+
+**Error handling:**
+- If the URL is unreachable or returns an error, the application will fail to start with a clear error message
+- If the remote YAML is invalid, the application will fail to start with a parsing error
+- The timeout for fetching remote config is 30 seconds
+
+---
 
 ## Related work
 
