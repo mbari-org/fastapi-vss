@@ -93,6 +93,11 @@ async def get_projects():
 
 @app.get("/ids/{project}", status_code=status.HTTP_200_OK)
 async def get_ids(project: str = DEFAULT_PROJECT):
+    """
+    Get the first 100 IDs and their classes for a given project.
+    This endpoint returns a limited sample of IDs for quick inspection.
+    For complete data exports, please use the appropriate bulk export tools.
+    """
     # Check if the project name is in the config
     if project not in config.keys():
         return {"error": f"Invalid project name {project}"}
@@ -110,6 +115,9 @@ async def get_ids(project: str = DEFAULT_PROJECT):
             if len(str) == 3:
                 classes.append(str[1])
                 ids.append(str[2])
+            # Limit to first 100 results
+            if len(ids) >= 100:
+                break
 
         return {"ids": ids, "classes": classes}
     except Exception as e:
