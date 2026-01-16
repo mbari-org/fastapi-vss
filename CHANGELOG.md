@@ -2,6 +2,23 @@
 
 
 
+## v0.11.3 (2026-01-16)
+
+### Performance
+
+* perf: limit /ids/{project} endpoint to return first 100 IDs (#5)
+
+Limit the endpoint to the first 100 IDs as this is just a convenience endpoint to checking the database ([`65632ee`](https://github.com/mbari-org/fastapi-vss/commit/65632ee8bc6fe79ffef018dfb4ab710b7b4a03f6))
+
+### Unknown
+
+* Feat/config (#4)
+
+* add url based loading of config with 
+* added caching of config
+* add docker check for internal versus external URL ([`51422ea`](https://github.com/mbari-org/fastapi-vss/commit/51422ea4799d29b48999a27e8125399c20b9a48d))
+
+
 ## v0.11.2 (2025-10-11)
 
 ### Performance
