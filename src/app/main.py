@@ -7,7 +7,7 @@ import redis
 import torch
 import pynvml
 
-from fastapi import FastAPI, status, File, UploadFile, Query
+from fastapi import FastAPI, status, File, UploadFile
 from typing import List
 
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -124,17 +124,46 @@ async def get_ids(project: str = DEFAULT_PROJECT):
         return {"error": f"Error getting ids: {e}"}
 
 
+@app.post("/knn/albu/{top_n}/{project}", status_code=status.HTTP_200_OK)
+async def knn_albu(
+    files: List[UploadFile] = File(...),
+    top_n: int = 1,
+    project: str = DEFAULT_PROJECT,
+):
+    """KNN search with Albumentations augmentation (RandomResizedCrop, GaussianBlur) applied to query images."""
+    try:
+        if project not in config.keys():
+            return {"error": f"Invalid project name {project}"}
+
+        info(f"Predicting {len(files)} for top {top_n} in project {project} (albumentations)")
+        if len(files) > BATCH_SIZE:
+            return {"error": f"Images should be less than batch size {BATCH_SIZE}"}
+
+        if top_n == 0:
+            return {"error": "Please provide a valid top_n value greater than 0"}
+
+        images = [f.file for f in files]
+        filenames = [f.filename for f in files]
+        redis_queue = queues[project]
+
+        info(f"Enqueuing job for {len(images)} images with top_n={top_n} in project {project} (albumentations)")
+        vss_config = config[project]
+        job = redis_queue.enqueue(predict_on_cpu_or_gpu, vss_config, images, top_n, filenames, augmentation="albumentations")
+        job_id = job.get_id()
+        debug(f"Enqueued job with ID {job_id} for project {project}")
+        return {"job_id": job_id, "Comment": f"Job results will be available for 5 minutes after completion. Use /predict/job/{job_id}/{project} to check status."}
+    except Exception as e:
+        return {"error": f"Error predicting images: {e}"}
+
+
 @app.post("/knn/{top_n}/{project}", status_code=status.HTTP_200_OK)
 async def knn(
     files: List[UploadFile] = File(...),
     top_n: int = 1,
     project: str = DEFAULT_PROJECT,
-    augmentation: str = Query(
-        "none",
-        description="Augmentation mode for query images. Supported: none, albumentations.",
-        pattern="^(none|albumentations)$",
-    ),
 ):
+
+    """KNN search with no augmentation applied to query images."""
     try:
         # Check if the project name is in the config
         if project not in config.keys():
@@ -153,7 +182,7 @@ async def knn(
 
         info(f"Enqueuing job for {len(images)} images with top_n={top_n} in project {project}")
         vss_config = config[project]
-        job = redis_queue.enqueue(predict_on_cpu_or_gpu, vss_config, images, top_n, filenames, augmentation=augmentation)
+        job = redis_queue.enqueue(predict_on_cpu_or_gpu, vss_config, images, top_n, filenames, augmentation="none")
         job_id = job.get_id()
         debug(f"Enqueued job with ID {job_id} for project {project}")
         return {"job_id": job_id, "Comment": f"Job results will be available for 5 minutes after completion. Use /predict/job/{job_id}/{project} to check status."}
