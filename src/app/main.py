@@ -7,7 +7,7 @@ import redis
 import torch
 import pynvml
 
-from fastapi import FastAPI, status, File, UploadFile
+from fastapi import FastAPI, status, File, UploadFile, Query
 from typing import List
 
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -125,7 +125,16 @@ async def get_ids(project: str = DEFAULT_PROJECT):
 
 
 @app.post("/knn/{top_n}/{project}", status_code=status.HTTP_200_OK)
-async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str = DEFAULT_PROJECT):
+async def knn(
+    files: List[UploadFile] = File(...),
+    top_n: int = 1,
+    project: str = DEFAULT_PROJECT,
+    augmentation: str = Query(
+        "none",
+        description="Augmentation mode for query images. Supported: none, albumentations.",
+        pattern="^(none|albumentations)$",
+    ),
+):
     try:
         # Check if the project name is in the config
         if project not in config.keys():
@@ -144,7 +153,7 @@ async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str 
 
         info(f"Enqueuing job for {len(images)} images with top_n={top_n} in project {project}")
         vss_config = config[project]
-        job = redis_queue.enqueue(predict_on_cpu_or_gpu, vss_config, images, top_n, filenames)
+        job = redis_queue.enqueue(predict_on_cpu_or_gpu, vss_config, images, top_n, filenames, augmentation=augmentation)
         job_id = job.get_id()
         debug(f"Enqueued job with ID {job_id} for project {project}")
         return {"job_id": job_id, "Comment": f"Job results will be available for 5 minutes after completion. Use /predict/job/{job_id}/{project} to check status."}

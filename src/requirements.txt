@@ -14,3 +14,4 @@ transformers
 torch
 torchvision
 rq>=2.4.0
+albumentations
