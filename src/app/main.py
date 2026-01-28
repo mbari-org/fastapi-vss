@@ -8,6 +8,7 @@ import torch
 import pynvml
 
 from fastapi import FastAPI, status, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -30,6 +31,14 @@ app = FastAPI(
     title=f"Fast-VSS API version {__version__}",
     description=f"""Run vector similarity search using Vision Transformer (ViT) models . Version {__version__}""",
     version=__version__,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 Instrumentator().instrument(app).expose(app)
