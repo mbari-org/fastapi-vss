@@ -104,7 +104,7 @@ build-docker:
 build-docker-cuda:
     #!/usr/bin/env bash
     tag=$(git describe --tags --abbrev=0 | sed 's/^v//')
-    docker build -t mbari/fastapi-vss:$tag -f Dockerfile.cuda .
+    docker build -t mbari/fastapi-vss:$tag\-cuda -f Dockerfile.cuda .
 
 # Build the docker images for linux/amd64 and push to Docker Hub
 build-and-push:
