@@ -5,6 +5,7 @@ import gc
 import json
 import logging
 import os
+import time
 import traceback
 from datetime import datetime
 from pathlib import Path
@@ -53,9 +54,9 @@ def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, fil
         gc.collect()
         del image_list
 
-        # Use the current date and time (hourly granularity) for output directory and time with microseconds for the filename to ensure uniqueness
+        # Use the current date and time (hourly granularity) for output directory and time with nanoseconds for the filename to ensure uniqueness
         current_time_hr = datetime.now().strftime("%Y%m%d_%H0000")
-        current_time = datetime.now().strftime("%Y%m%d_%H%M%S.%f")
+        current_time = datetime.now().strftime("%Y%m%d_%H%M%S") + f".{time.time_ns() % 10**9:09d}"
 
         # Create output directory if it doesn't exist
         output_dir = v_config.get("output_path", "output")
