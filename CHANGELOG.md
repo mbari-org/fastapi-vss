@@ -2,6 +2,13 @@
 
 
 
+## v0.11.4 (2026-01-29)
+
+### Performance
+
+* perf: switch to nanosecond log ([`136d6e7`](https://github.com/mbari-org/fastapi-vss/commit/136d6e74ec20d6df898de18f12d977c14642f689))
+
+
 ## v0.11.3 (2026-01-16)
 
 ### Performance
