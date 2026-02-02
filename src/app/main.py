@@ -147,7 +147,7 @@ async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str 
         job = redis_queue.enqueue(predict_on_cpu_or_gpu, vss_config, images, top_n, filenames)
         job_id = job.get_id()
         debug(f"Enqueued job with ID {job_id} for project {project}")
-        return {"job_id": job_id, "Comment": f"Job results will be available for 5 minutes after completion. Use /predict/job/{job_id}/{project} to check status."}
+        return {"job_id": job_id, "Comment": f"Use /predict/job/{job_id}/{project} to check status."}
     except Exception as e:
         return {"error": f"Error predicting images: {e}"}
 
