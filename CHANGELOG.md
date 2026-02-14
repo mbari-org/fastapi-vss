@@ -2,6 +2,17 @@
 
 
 
+## v0.11.5 (2026-02-14)
+
+### Documentation
+
+* docs: added worfklow and refresher on README.md ([`b3d7960`](https://github.com/mbari-org/fastapi-vss/commit/b3d7960267099d5b6487fd9dfcfc9903da424f87))
+
+### Fix
+
+* fix: remove job comment about time results will be available as this may be indefinite, depending on the deployment ([`43477d1`](https://github.com/mbari-org/fastapi-vss/commit/43477d14dc99e85efe25b883869f6e66c2842091))
+
+
 ## v0.11.4 (2026-01-29)
 
 ### Performance

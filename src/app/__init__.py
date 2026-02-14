@@ -1,2 +1,2 @@
 # src/app/__init__.py
-__version__ = "0.11.4"
+__version__ = "0.11.5"
