@@ -18,7 +18,7 @@ from app import __version__
 from app import logger
 from app.config import init_config, BATCH_SIZE
 from app.logger import info, debug
-from app.predictors.tasks import predict_on_cpu_or_gpu
+from app.predictors.tasks import predict_on_cpu_or_gpu, get_embeddings_task
 from app.predictors.vector_similarity import VectorSimilarity
 
 log_path = os.getenv("LOG_DIR", "logs")
@@ -150,6 +150,31 @@ async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str 
         return {"job_id": job_id, "Comment": f"Use /predict/job/{job_id}/{project} to check status."}
     except Exception as e:
         return {"error": f"Error predicting images: {e}"}
+
+
+@app.post("/embed/{project}", status_code=status.HTTP_200_OK)
+async def embeddings(files: List[UploadFile] = File(...), project: str = DEFAULT_PROJECT):
+    try:
+        # Check if the project name is in the config
+        if project not in config.keys():
+            return {"error": f"Invalid project name {project}"}
+
+        info(f"Getting embeddings for {len(files)} in project {project}")
+        if len(files) > BATCH_SIZE:
+            return {"error": f"Images should be less than batch size {BATCH_SIZE}"}
+
+        images = [f.file for f in files]
+        filenames = [f.filename for f in files]
+        redis_queue = queues[project]
+
+        info(f"Enqueuing embedding job for {len(images)} images in project {project}")
+        vss_config = config[project]
+        job = redis_queue.enqueue(get_embeddings_task, vss_config, images, filenames)
+        job_id = job.get_id()
+        debug(f"Enqueued embedding job with ID {job_id} for project {project}")
+        return {"job_id": job_id, "Comment": f"Use /predict/job/{job_id}/{project} to check status."}
+    except Exception as e:
+        return {"error": f"Error getting embeddings: {e}"}
 
 
 @app.get("/predict/job/{job_id}/{project}")

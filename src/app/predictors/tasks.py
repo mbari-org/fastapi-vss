@@ -80,3 +80,22 @@ def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, fil
         error_message = f"Error during prediction: {e}\n{traceback.format_exc()}"
         logger.info(error_message)
         return error_message
+
+
+def get_embeddings_task(v_config: dict, image_list: List[str], filenames: List[str]) -> dict:
+    try:
+        logger.info(f"Getting embeddings for {len(image_list)} images using model {v_config['model']} on device {v_config['device']}")
+        predictor = _predictor_stack.top
+        embeddings = predictor.get_embeddings(image_list)
+        gc.collect()
+        del image_list
+
+        output_final = {
+            "filenames": filenames,
+            "embeddings": embeddings,
+        }
+        return output_final
+    except Exception as e:
+        error_message = f"Error during embedding generation: {e}\n{traceback.format_exc()}"
+        logger.info(error_message)
+        return error_message

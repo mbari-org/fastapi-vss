@@ -98,7 +98,7 @@ stop-server-prod:
 build-docker:
     #!/usr/bin/env bash
     tag=$(git describe --tags --abbrev=0 | sed 's/^v//')
-    docker build -t mbari/fastapi-vss:$tag -f Dockerfile .
+    docker build -t mbari/fastapi-vss:$tag -f Dockerfile.delme .
 
 # Build the CUDA Docker image for development
 build-docker-cuda:
@@ -166,3 +166,28 @@ process_copepods:
      -H 'accept: application/json' \
      -H 'Content-Type: multipart/form-data' \
      -F 'files=@copepod3.png;type=image/png'
+
+# Quick test to fetch embeddings from the test project
+process_embeddings:
+    #!/usr/bin/env bash
+    cd ./tests/images/atolla
+
+    echo "Processing embeddings for Atolla images..."
+    response=$(curl -s -X 'POST' \
+      'http://localhost:8000/embed/testproject' \
+      -H 'accept: application/json' \
+      -H 'Content-Type: multipart/form-data' \
+      -F 'files=@atolla1.png;type=image/png' \
+      -F 'files=@atolla2.png;type=image/png')
+
+    id=$(echo "$response" | sed -n 's/.*"job_id":"\([^"]*\)".*/\1/p')
+    echo "Job ID extracted: $id"
+
+    if [[ -z "$id" ]]; then
+      echo "Failed to extract job ID from response: $response"
+      exit 1
+    fi
+
+    echo "Waiting 10 seconds for job to complete..."
+    sleep 10
+    curl -s -X 'GET' "http://localhost:8000/predict/job/$id/testproject" | python3 -m json.tool
