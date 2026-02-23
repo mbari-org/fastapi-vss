@@ -23,18 +23,17 @@ debug = logger.debug
 err = logger.error
 
 
-# Required environment variables REDIS_PASSWD and CONFIG_PATH
+# Required environment variable REDIS_PASSWD
 dotenv.load_dotenv()
 if not os.getenv("REDIS_PASSWD"):
     raise Exception("REDIS_PASSWD environment variable not set")
-if not os.getenv("CONFIG_PATH"):
-    raise Exception("CONFIG_PATH environment variable not set")
 
 # Number of images to process in a batch to default 32, or can be set by the environment variable BATCH_SIZE
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", 32))
 
-# Get the path of this file
-CONFIG_PATH = Path(os.getenv("CONFIG_PATH"), Path(__file__).parent.parent.parent.parent / "config")
+# CONFIG_PATH defaults to <project_root>/config derived from this file's location
+_default_config = Path(__file__).resolve().parent.parent.parent.parent / "config"
+CONFIG_PATH = Path(os.getenv("CONFIG_PATH", str(_default_config)))
 
 print(f"Using configuration path: {CONFIG_PATH}")
 

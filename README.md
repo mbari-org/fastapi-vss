@@ -34,22 +34,40 @@ flowchart LR
 ## Features
 
 - **Redis**—fastest vector database available; sub-ms KNN over embeddings
-- Foundational (DINO) or fine-tuned ViT models
+- Foundational (DINO) or fine-tuned ViT models trained with the Huggingface trainer: https://github.com/mbari-org/vitstrain
 - **Batch processing**—configurable `BATCH_SIZE` (env var), async RQ, parallel workers; top-n search
 - Docker, OpenAPI docs, URL-based config override
 
 ## Configuration
 
-YAML config in `CONFIG_PATH`. Basic example:
+YAML config files are loaded from the `CONFIG_PATH` directory. By default this is the `config/` directory at the project root. Override by setting the `CONFIG_PATH` environment variable.
+
+Basic example that define the redis server and a single model:
 
 ```yaml
+# config_testproject1.yaml
+# This config references a foundational model
 redis:
-  host: "redis"
+  host: "redis-stack-vss"
   port: 6379
 vss:
   model: "google/vit-base-patch16-224"
-  project: "testproject"
-  output_path: "/data/vss/outputs"
+  project: "testproject1"
+  output_path: "/data/vss/outputs/testproject1"
+```
+
+For multiple models, add multipls config files per each project, e.g.
+
+```yaml
+# config_testproject2.yaml
+# This config uses a locally stored model
+redis:
+  host: "redis-stack-vss"
+  port: 6379
+vss:
+  model: "/mnt/models/CFE/cfe_isiis_dino_v7-20250916/"
+  project: "testproject2"
+  output_path: "/data/vss/outputs/testproject2"
 ```
 
 Add `config_url: "https://..."` to merge remote config (remote overrides local). Timeout 30s.
@@ -59,4 +77,4 @@ Add `config_url: "https://..."` to merge remote config (remote overrides local).
 
 ## Related
 
-- Model training: https://github.com/mbari-org/vitstrain
+- Train your own ViTS model using the Huggingface trainer: https://github.com/mbari-org/vitstrain

@@ -86,3 +86,17 @@ class ViTWrapper:
                 scores.append([round(float(x["score"]), 4) for x in r])
 
         return predictions, scores, ids
+
+    def get_embeddings(self, image_paths: List[str]) -> List[List[float]]:
+        """Get embeddings for a batch of images"""
+        all_embeddings = []
+
+        info(f"Found {len(image_paths)} images to get embeddings")
+        for i in range(0, len(image_paths), self.batch_size):
+            batch = image_paths[i : i + self.batch_size]
+            images = self.preprocess_images(batch)
+            embeddings = self.get_image_embeddings(images)
+            for emb in embeddings:
+                all_embeddings.append(emb.tolist())
+
+        return all_embeddings

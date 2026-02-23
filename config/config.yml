@@ -2,7 +2,7 @@
 # Config file for testing and development
 
 redis:
-  host: "redis"
+  host: "redis-stack-vss"
   port: 6379
   project: "testproject"
 

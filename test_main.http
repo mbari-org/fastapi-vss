@@ -70,3 +70,24 @@ Content-Type: image/png
         client.assert(body.job_id || body.error, "Expected either a job ID or an error message");
     });
 %}
+###
+
+### Embed endpoint
+POST http://127.0.0.1:8000/embed/testproject
+Accept: application/json
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="elephant.jpg"
+Content-Type: image/jpeg
+
+< tests/images/mammal/elephant.jpg
+--boundary--
+
+> {%
+    client.test("Embed endpoint returns valid response", function() {
+        client.assert(response.status === 200, "Expected response status to be 200");
+        const body = response.body;
+        client.assert(body.job_id || body.error, "Expected either a job ID or an error message");
+    });
+%}
