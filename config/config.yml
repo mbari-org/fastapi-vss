@@ -3,7 +3,7 @@
 
 redis:
   host: "redis"
-  port: 6380
+  port: 6379
   project: "testproject"
 
 vss:

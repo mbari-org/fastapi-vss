@@ -34,7 +34,7 @@ flowchart LR
 ## Features
 
 - **Redis**—fastest vector database available; sub-ms KNN over embeddings
-- Foundational (DINO) or fine-tuned ViT models
+- Foundational (DINO) or fine-tuned ViT models trained with the Huggingface trainer: https://github.com/mbari-org/vitstrain
 - **Batch processing**—configurable `BATCH_SIZE` (env var), async RQ, parallel workers; top-n search
 - Docker, OpenAPI docs, URL-based config override
 
@@ -59,4 +59,4 @@ Add `config_url: "https://..."` to merge remote config (remote overrides local).
 
 ## Related
 
-- Model training: https://github.com/mbari-org/vitstrain
+- Train your own ViTS model using the Huggingface trainer: https://github.com/mbari-org/vitstrain

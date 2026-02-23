@@ -6,7 +6,7 @@ services:
   fastapi:
     build:
       context: .
-      dockerfile: Dockerfile.delme
+      dockerfile: Dockerfile
     image: mbari/fastapi-vss:${GIT_VERSION}
     container_name: fastapi-vss
     healthcheck:
@@ -25,7 +25,6 @@ services:
     environment:
       - LOG_DIR=/tmp/logs
     volumes:
-      - ${CONFIG_PATH}:${CONFIG_PATH}
       - log:/tmp/logs
       - ./src:/app/src
     restart: always
@@ -39,11 +38,11 @@ services:
     command:
       - /bin/sh
       - -c
-      - redis-stack-server  --port 6380 --appendonly yes --appendfsync everysec --requirepass "$${REDIS_PASSWD:?REDIS_PASSWD variable is not set}"
+      - redis-stack-server  --port 6379 --appendonly yes --appendfsync everysec --requirepass "$${REDIS_PASSWD:?REDIS_PASSWD variable is not set}"
     image: redis/redis-stack-server
     container_name: redis-server-vss
     ports:
-      - "6380:6380"
+      - "6379:6379"
     volumes:
       - redis-data:/data
     restart: always
@@ -52,7 +51,7 @@ services:
   rq-worker:
     build:
       context: .
-      dockerfile: Dockerfile.delme
+      dockerfile: Dockerfile
     env_file:
       - .env
     image: mbari/fastapi-vss:${GIT_VERSION}
@@ -65,7 +64,6 @@ services:
       - -c
       - python /app/src/app/start_worker.py
     volumes:
-      - ${CONFIG_PATH}:${CONFIG_PATH}
       - worker-data:/data
       - rq-worker-log:/tmp/logs
       - ./src:/app/src

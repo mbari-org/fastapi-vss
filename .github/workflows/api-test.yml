@@ -17,16 +17,14 @@ jobs:
 
       - name: Set environment
         run: |
-          CONFIG_DIR=$(pwd)/config
           cat > .env <<EOF
           REDIS_PASSWD=xvN2ErdyY4
           LOG_LEVEL=INFO
           GIT_VERSION=latest
-          CONFIG_PATH=$CONFIG_DIR
           EOF
 
       - name: Start Docker services
-        run: docker compose -f compose.yml up -d
+        run: docker compose -f compose.yml up -d --build
 
       - name: Install httpyac
         run: npm install -g httpyac

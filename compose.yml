@@ -25,14 +25,13 @@ services:
     environment:
       - LOG_DIR=/tmp/logs
     volumes:
-      - ${CONFIG_PATH}:${CONFIG_PATH}
       - log:/tmp/logs
     restart: always
     depends_on:
-      - redis
+      - redis-stack
     networks:
       - vss
-  redis:
+  redis-stack:
     env_file:
       - .env
     command:
@@ -40,7 +39,7 @@ services:
       - -c
       - redis-stack-server  --port 6379 --appendonly yes --appendfsync everysec --requirepass "$${REDIS_PASSWD:?REDIS_PASSWD variable is not set}"
     image: redis/redis-stack-server
-    container_name: redis
+    container_name: redis-stack-vss
     ports:
       - "6379:6379"
     volumes:
@@ -64,7 +63,6 @@ services:
       - -c
       - python /app/src/app/start_worker.py
     volumes:
-      - ${CONFIG_PATH}:${CONFIG_PATH}
       - worker-data:/data
       - rq-worker-log:/tmp/logs
     depends_on:
@@ -82,11 +80,12 @@ services:
         - python /app/tests/load.py
     environment:
       - REDIS_PASSWD=${REDIS_PASSWD}
-      - REDIS_HOST=redis
+      - REDIS_HOST=redis-stack-vss
+      - REDIS_PORT=6379
     volumes:
       - ./tests:/app/tests
     depends_on:
-        - redis
+        - redis-stack
     networks:
         - vss
 volumes:
