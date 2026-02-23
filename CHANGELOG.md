@@ -2,6 +2,26 @@
 
 
 
+## v0.12.0 (2026-02-23)
+
+### Documentation
+
+* docs: shorten README.md ([`9ba45cc`](https://github.com/mbari-org/fastapi-vss/commit/9ba45cc0171793138c13e4b01b88bae0c7ac0e01))
+
+### Feature
+
+* feat: add support for returning embeddings (#8)
+
+This mostly adds a new endpoint /embed/{project}  that returns raw ViT embeddings for uploaded images (instead of KNN predictions) along with proper testing of the endpoing.
+
+A few simplifications were made to build and CI including:
+
+CONFIG_PATH is no longer a required environment variable. It now defaults to &lt;project_root&gt;/config 
+Renamed redis container to redis-stack which more clearly reflects the full redis stack capability needed for vector support.
+
+Some clean-up of unused exclusions in precommit files, improved README.md documentation on configuration and justfile recipes for convenience. ([`8658984`](https://github.com/mbari-org/fastapi-vss/commit/86589840ba635e9417bf00214c1a40dc352204ac))
+
+
 ## v0.11.5 (2026-02-14)
 
 ### Documentation
