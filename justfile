@@ -98,7 +98,7 @@ stop-server-prod:
 build-docker:
     #!/usr/bin/env bash
     tag=$(git describe --tags --abbrev=0 | sed 's/^v//')
-    docker build -t mbari/fastapi-vss:$tag -f Dockerfile.delme .
+    docker build -t mbari/fastapi-vss:$tag -f Dockerfile .
 
 # Build the CUDA Docker image for development
 build-docker-cuda:
