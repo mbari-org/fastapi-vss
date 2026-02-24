@@ -56,7 +56,7 @@ vss:
   output_path: "/data/vss/outputs/testproject1"
 ```
 
-For multiple models, add multipls config files per each project, e.g.
+For multiple models, add multiple config files per each project, e.g.
 
 ```yaml
 # config_testproject2.yaml
