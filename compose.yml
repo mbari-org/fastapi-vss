@@ -24,6 +24,7 @@ services:
       - "8000:8000"
     environment:
       - LOG_DIR=/tmp/logs
+      - CONFIG_PATH=/app/config
     volumes:
       - log:/tmp/logs
     restart: always
