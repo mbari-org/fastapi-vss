@@ -2,6 +2,21 @@
 
 
 
+## v0.12.1 (2026-02-28)
+
+### Build
+
+* build: updated with missing CONFIG_PATH ([`5031be1`](https://github.com/mbari-org/fastapi-vss/commit/5031be1c30edecd882bbfb5c7e77f6de4702e6b6))
+
+### Documentation
+
+* docs: updated with latest REST api screenshot ([`433c176`](https://github.com/mbari-org/fastapi-vss/commit/433c176fb7be3b1572132df4f8ba30a2e8eb87e8))
+
+### Fix
+
+* fix: suppress pynvml warning when using nvidia, pin requirements.txt with best version for cross-platform use with redis ([`c68c7b8`](https://github.com/mbari-org/fastapi-vss/commit/c68c7b86695bc1dcd8a161f1ad5bf64fe4c029d4))
+
+
 ## v0.12.0 (2026-02-23)
 
 ### Documentation
