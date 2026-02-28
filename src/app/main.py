@@ -5,7 +5,15 @@ import os
 
 import redis
 import torch
-import pynvml
+
+# Suppress the FutureWarning from torch about pynvml - we're using nvidia-ml-py
+import warnings
+warnings.filterwarnings("ignore", message=".*pynvml package is deprecated.*")
+
+try:
+    import pynvml
+except ImportError:
+    pynvml = None
 
 from fastapi import FastAPI, status, File, UploadFile
 from typing import List
@@ -59,7 +67,7 @@ for project in config.keys():
 DEFAULT_PROJECT = list(config.keys())[0]
 
 GPU_AVAILABLE = False
-if torch.cuda.is_available():
+if torch.cuda.is_available() and pynvml is not None:
     pynvml.nvmlInit()
     GPU_AVAILABLE = True
 
@@ -145,7 +153,7 @@ async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str 
         info(f"Enqueuing job for {len(images)} images with top_n={top_n} in project {project}")
         vss_config = config[project]
         job = redis_queue.enqueue(predict_on_cpu_or_gpu, vss_config, images, top_n, filenames)
-        job_id = job.get_id()
+        job_id = job.id
         debug(f"Enqueued job with ID {job_id} for project {project}")
         return {"job_id": job_id, "Comment": f"Use /predict/job/{job_id}/{project} to check status."}
     except Exception as e:
@@ -170,7 +178,7 @@ async def embeddings(files: List[UploadFile] = File(...), project: str = DEFAULT
         info(f"Enqueuing embedding job for {len(images)} images in project {project}")
         vss_config = config[project]
         job = redis_queue.enqueue(get_embeddings_task, vss_config, images, filenames)
-        job_id = job.get_id()
+        job_id = job.id
         debug(f"Enqueued embedding job with ID {job_id} for project {project}")
         return {"job_id": job_id, "Comment": f"Use /predict/job/{job_id}/{project} to check status."}
     except Exception as e:
