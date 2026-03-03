@@ -1,4 +1,23 @@
+# Git and IDE
+.git
+.github/
+.gitignore
+.gitmodules
+.cursor
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info
+.eggs
+*.egg
+
+# Docs and tests (not needed at runtime)
 *.png
+*.jpg
 *.jpb
 *.env
 docs/
@@ -8,6 +27,3 @@ Dockerfile*
 *.md
 bin/
 src/aidata
-.github/
-.gitmodules
-*.pyc
