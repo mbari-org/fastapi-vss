@@ -2,6 +2,17 @@
 
 
 
+## v0.12.2 (2026-03-03)
+
+### Build
+
+* build: reduce docker image size by using multi-stage and removing unnecessary files ([`8991489`](https://github.com/mbari-org/fastapi-vss/commit/8991489ddd3aedcf364627ca2959d6ebad9a25c5))
+
+### Fix
+
+* fix: move inputs to same device as model ([`636619d`](https://github.com/mbari-org/fastapi-vss/commit/636619d4c0b0297540ac52afb19f7dd65042ce2c))
+
+
 ## v0.12.1 (2026-02-28)
 
 ### Build
