@@ -42,7 +42,7 @@ class ViTWrapper:
         debug(f"Preprocessing {len(image_paths)} images")
         with ThreadPoolExecutor(max_workers=8) as executor:
             images = list(executor.map(lambda p: Image.open(p).convert("RGB"), image_paths))
-        inputs = self.processor(images=images, return_tensors="pt", device="cuda")
+        inputs = self.processor(images=images, return_tensors="pt")
         debug(f"Done preprocessing {len(image_paths)} images, batch size is {inputs['pixel_values'].shape[0]}")
         return inputs
 
@@ -50,6 +50,9 @@ class ViTWrapper:
         """get embeddings for a batch of images"""
         debug(f"Getting embeddings for batch of size {inputs['pixel_values'].shape[0]}")
         debug(inputs["pixel_values"].shape)  # Should be (B, 3, H, W)
+
+        # Move inputs to same device as model (processor returns CPU tensors)
+        inputs = {k: v.to(self.device) if isinstance(v, torch.Tensor) else v for k, v in inputs.items()}
 
         with torch.no_grad():
             embeddings = self.model(**inputs)
