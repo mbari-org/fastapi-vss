@@ -13,11 +13,10 @@ ENV PATH="/venv/bin:$PATH"
 
 WORKDIR /app
 COPY src/requirements.txt src/requirements.txt
-# Install deps excluding torch/torchvision to avoid pulling ~2GB from PyPI, then install CUDA builds only
-RUN grep -v -E '^(torch|torchvision)==' src/requirements.txt > /tmp/req.txt && \
-    pip install --no-cache-dir -r /tmp/req.txt && \
+# Install all requirements first, then reinstall torch/torchvision from CUDA index to ensure CUDA build
+RUN pip install --no-cache-dir -r src/requirements.txt && \
     pip install --no-cache-dir https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip && \
-    pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu121
+    pip install --force-reinstall --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu121
 
 # -----------------------------------------------------------------------------
 FROM python:3.11-slim
