@@ -12,6 +12,8 @@ from app.predictors.tasks import MyWorker
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+# Suppress verbose PIL/Pillow PNG stream debug logs
+logging.getLogger("PIL").setLevel(logging.WARNING)
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.DEBUG)
 logger.addHandler(console_handler)
