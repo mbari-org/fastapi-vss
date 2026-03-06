@@ -2,6 +2,18 @@
 
 
 
+## v0.13.0 (2026-03-06)
+
+### Feature
+
+* feat: add web socket support and better handling of model weights
+
+* testing  logging and byte fix
+* correct cuda build
+* add check for existence of model path if local
+* web socket, tests, and better handling of model weights ([`a896f50`](https://github.com/mbari-org/fastapi-vss/commit/a896f50e59eea222409f8c659ed09755d487e4a5))
+
+
 ## v0.12.2 (2026-03-03)
 
 ### Build
