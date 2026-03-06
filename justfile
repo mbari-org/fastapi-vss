@@ -20,6 +20,7 @@ install: setup-env
     conda env create -f environment.yml
     conda activate fastapi-vss
     python -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
+    pre-commit install
 
 # Run tests. Run this before committing code to ensure tests pass which are required before release
 test: run-server-prod
@@ -39,7 +40,7 @@ setup-env:
     EOF
 
     # Update config paths to absolute paths for local development
-    sed -i '' "s|\./|$PWD/|g" $CONFIG_DIR/config.dev.yml
+    sed -i '' "s|\./|$PWD/|g" $CONFIG_DIR/dev/config.yml
 
     # Prepare directories and download the ViT model for local development
     mkdir -p logs models/vit-base-patch16-224

@@ -5,22 +5,12 @@ import asyncio
 import json
 import logging
 import os
+import warnings
 
 import redis
 import torch
-
-# Suppress the FutureWarning from torch about pynvml - we're using nvidia-ml-py
-import warnings
-warnings.filterwarnings("ignore", message=".*pynvml package is deprecated.*")
-
-try:
-    import pynvml
-except ImportError:
-    pynvml = None
-
 from fastapi import FastAPI, status, File, UploadFile, WebSocket, WebSocketDisconnect
 from typing import List
-
 from prometheus_fastapi_instrumentator import Instrumentator
 from rq import Queue
 from rq.job import Job
@@ -31,6 +21,14 @@ from app.config import init_config, BATCH_SIZE
 from app.logger import info, debug
 from app.predictors.tasks import predict_on_cpu_or_gpu, get_embeddings_task
 from app.predictors.vector_similarity import VectorSimilarity
+
+# Suppress the FutureWarning from torch about pynvml - we're using nvidia-ml-py
+warnings.filterwarnings("ignore", message=".*pynvml package is deprecated.*")
+
+try:
+    import pynvml
+except ImportError:
+    pynvml = None
 
 log_path = os.getenv("LOG_DIR", "logs")
 logger = logger.create_logger_file(log_path)
@@ -219,6 +217,7 @@ async def get_job_result(job_id: str, project: str = DEFAULT_PROJECT):
             return {"status": "pending"}
     except Exception as e:
         return {"error": f"Error fetching job status: {e}"}
+
 
 @app.websocket("/ws/predict/job/{job_id}/{project}")
 async def ws_job_result(websocket: WebSocket, job_id: str, project: str = DEFAULT_PROJECT):

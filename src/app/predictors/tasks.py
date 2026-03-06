@@ -26,6 +26,7 @@ console_handler.setLevel(logging.DEBUG)
 logger.addHandler(console_handler)
 _predictor_stack = LocalStack()
 
+
 class MyWorker(SimpleWorker):
     def __init__(self, project, *args, **kwargs):
         super(MyWorker, self).__init__(*args, **kwargs)

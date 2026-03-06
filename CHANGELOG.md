@@ -54,7 +54,7 @@ This mostly adds a new endpoint /embed/{project}  that returns raw ViT embedding
 
 A few simplifications were made to build and CI including:
 
-CONFIG_PATH is no longer a required environment variable. It now defaults to &lt;project_root&gt;/config 
+CONFIG_PATH is no longer a required environment variable. It now defaults to &lt;project_root&gt;/config
 Renamed redis container to redis-stack which more clearly reflects the full redis stack capability needed for vector support.
 
 Some clean-up of unused exclusions in precommit files, improved README.md documentation on configuration and justfile recipes for convenience. ([`8658984`](https://github.com/mbari-org/fastapi-vss/commit/86589840ba635e9417bf00214c1a40dc352204ac))
@@ -90,7 +90,7 @@ Limit the endpoint to the first 100 IDs as this is just a convenience endpoint t
 
 * Feat/config (#4)
 
-* add url based loading of config with 
+* add url based loading of config with
 * added caching of config
 * add docker check for internal versus external URL ([`51422ea`](https://github.com/mbari-org/fastapi-vss/commit/51422ea4799d29b48999a27e8125399c20b9a48d))
 

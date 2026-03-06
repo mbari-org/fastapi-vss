@@ -8,6 +8,6 @@ redis:
   project: "testproject"
 
 vss:
-  model: "./models/vit-base-patch16-224" # Model to use for VSS can be a Hugging Face model ID or a local path
+  model: "/Users/dcline/Dropbox/code/ai/fastapi-vss/models/vit-base-patch16-224" # Model to use for VSS can be a Hugging Face model ID or a local path
   project: "testproject" # Project name for VSS
-  output_path: "./config/dev/outputs"  # Directory where VSS saves JSON results
+  output_path: "/Users/dcline/Dropbox/code/ai/fastapi-vss/config/dev/outputs"  # Directory where VSS saves JSON results

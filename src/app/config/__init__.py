@@ -71,7 +71,7 @@ def _is_in_docker() -> bool:
     """
     if "IN_DOCKER" in os.environ and "1" in os.getenv("IN_DOCKER"):
         return True
-    
+
     return False
 
 
@@ -85,7 +85,7 @@ def _fetch_config_from_url(url: str) -> dict:
     if url in _remote_config_cache:
         info(f"Using cached configuration from URL: {url}")
         return _remote_config_cache[url]
-    
+
     try:
         info(f"Fetching configuration from URL: {url}")
         with httpx.Client(timeout=30.0) as client:
@@ -112,12 +112,12 @@ def init_config(target_project=None) -> dict[Any, dict[str, device | Any]]:
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     config = {}
     in_docker = _is_in_docker()
-    
+
     if in_docker:
         info("Detected Docker environment - using internal Redis hosts")
     else:
         info("Detected native environment - using external Redis hosts")
-    
+
     # Read the yaml configuration files for each project
     for yaml_path in CONFIG_PATH.rglob("*.yml"):
         if not yaml_path.exists():
@@ -129,7 +129,7 @@ def init_config(target_project=None) -> dict[Any, dict[str, device | Any]]:
             local_data = yaml.safe_load(yaml_file)
             info(f"Reading configuration from {yaml_path}")
             info(local_data)
-            
+
             # Check if config_url is specified
             config_url = local_data.get("config_url")
             if config_url:
@@ -142,7 +142,7 @@ def init_config(target_project=None) -> dict[Any, dict[str, device | Any]]:
                 info(f"Merged remote configuration from {config_url} with local configuration")
             else:
                 data = local_data
-            
+
             project = data["vss"]["project"]
             if target_project and project != target_project:
                 info(f"Skipping project {project} as it's not the target project {target_project}")

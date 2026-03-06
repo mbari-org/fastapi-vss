@@ -8,7 +8,9 @@ import pytest
 from starlette.testclient import TestClient
 
 import sys
+
 sys.path.append("src")
+
 
 def _make_job(finished=False, failed=False, return_val=None):
     job = MagicMock()
@@ -16,6 +18,7 @@ def _make_job(finished=False, failed=False, return_val=None):
     job.is_failed = failed
     job.return_value.return_value = return_val
     return job
+
 
 @pytest.fixture()
 def client():
@@ -27,10 +30,11 @@ def client():
         patch("app.main.DEFAULT_PROJECT", "testproject"),
     ):
         from app.main import app  # import after patches are applied
+
         yield TestClient(app)
 
-class TestWebSocketJobResult:
 
+class TestWebSocketJobResult:
     def test_invalid_project(self, client):
         with client.websocket_connect("/ws/predict/job/some-job-id/bad-project") as ws:
             msg = json.loads(ws.receive_text())
@@ -89,10 +93,7 @@ class TestWebSocketJobResult:
 
     def test_embedding_job_result(self, client):
         """Test that embedding results are properly returned."""
-        embedding_result = {
-            "filenames": ["test.jpg"],
-            "embeddings": [[0.1] * 768]
-        }
+        embedding_result = {"filenames": ["test.jpg"], "embeddings": [[0.1] * 768]}
         finished_job = _make_job(finished=True, return_val=embedding_result)
 
         with (

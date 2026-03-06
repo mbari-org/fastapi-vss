@@ -47,15 +47,11 @@ def test_embed_endpoint():
     assert "filenames" in result, f"Missing 'filenames' in result: {result.keys()}"
     assert "embeddings" in result, f"Missing 'embeddings' in result: {result.keys()}"
 
-    assert result["filenames"] == ["elephant.jpg"], (
-        f"Expected filenames ['elephant.jpg'], got {result['filenames']}"
-    )
+    assert result["filenames"] == ["elephant.jpg"], f"Expected filenames ['elephant.jpg'], got {result['filenames']}"
 
     embeddings = result["embeddings"]
     assert len(embeddings) == 1, f"Expected 1 embedding, got {len(embeddings)}"
-    assert len(embeddings[0]) == EXPECTED_EMBEDDING_DIM, (
-        f"Expected embedding dimension {EXPECTED_EMBEDDING_DIM}, got {len(embeddings[0])}"
-    )
+    assert len(embeddings[0]) == EXPECTED_EMBEDDING_DIM, f"Expected embedding dimension {EXPECTED_EMBEDDING_DIM}, got {len(embeddings[0])}"
 
     assert all(isinstance(v, float) for v in embeddings[0]), "Embedding values should be floats"
 
