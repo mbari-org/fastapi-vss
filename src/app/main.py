@@ -1,6 +1,9 @@
 # fastapi-vss, Apache-2.0 license
 # Filename: app/main.py
 # Description: Process images with Vision Transformer (ViT) models
+import asyncio
+import json
+import logging
 import os
 
 import redis
@@ -15,7 +18,7 @@ try:
 except ImportError:
     pynvml = None
 
-from fastapi import FastAPI, status, File, UploadFile
+from fastapi import FastAPI, status, File, UploadFile, WebSocket, WebSocketDisconnect
 from typing import List
 
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -31,6 +34,11 @@ from app.predictors.vector_similarity import VectorSimilarity
 
 log_path = os.getenv("LOG_DIR", "logs")
 logger = logger.create_logger_file(log_path)
+
+# Suppress verbose multipart parsing debug logs from python_multipart
+logging.getLogger("python_multipart.multipart").setLevel(logging.WARNING)
+# Suppress verbose PIL/Pillow PNG stream debug logs
+logging.getLogger("PIL").setLevel(logging.WARNING)
 
 info(f"Starting Fast-VSS API version {__version__}")
 
@@ -50,6 +58,11 @@ if len(config) == 0:
 
 queues = {}
 connections = {}
+
+# WebSocket poll interval in seconds - short enough to be responsive, avoids hammering Redis
+WS_POLL_INTERVAL = 0.5
+# Maximum time to wait for a job to complete before closing the WebSocket
+WS_MAX_WAIT = 300  # 5 minutes
 
 for project in config.keys():
     redis_host = config[project]["redis_host"]
@@ -146,13 +159,13 @@ async def knn(files: List[UploadFile] = File(...), top_n: int = 1, project: str 
         if top_n == 0:
             return {"error": "Please provide a valid top_n value greater than 0"}
 
-        images = [f.file for f in files]
+        image_bytes = [await f.read() for f in files]
         filenames = [f.filename for f in files]
         redis_queue = queues[project]
 
-        info(f"Enqueuing job for {len(images)} images with top_n={top_n} in project {project}")
+        info(f"Enqueuing job for {len(image_bytes)} images with top_n={top_n} in project {project}")
         vss_config = config[project]
-        job = redis_queue.enqueue(predict_on_cpu_or_gpu, vss_config, images, top_n, filenames)
+        job = redis_queue.enqueue(predict_on_cpu_or_gpu, vss_config, image_bytes, top_n, filenames)
         job_id = job.id
         debug(f"Enqueued job with ID {job_id} for project {project}")
         return {"job_id": job_id, "Comment": f"Use /predict/job/{job_id}/{project} to check status."}
@@ -171,13 +184,13 @@ async def embeddings(files: List[UploadFile] = File(...), project: str = DEFAULT
         if len(files) > BATCH_SIZE:
             return {"error": f"Images should be less than batch size {BATCH_SIZE}"}
 
-        images = [f.file for f in files]
+        image_bytes = [await f.read() for f in files]
         filenames = [f.filename for f in files]
         redis_queue = queues[project]
 
-        info(f"Enqueuing embedding job for {len(images)} images in project {project}")
+        info(f"Enqueuing embedding job for {len(image_bytes)} images in project {project}")
         vss_config = config[project]
-        job = redis_queue.enqueue(get_embeddings_task, vss_config, images, filenames)
+        job = redis_queue.enqueue(get_embeddings_task, vss_config, image_bytes, filenames)
         job_id = job.id
         debug(f"Enqueued embedding job with ID {job_id} for project {project}")
         return {"job_id": job_id, "Comment": f"Use /predict/job/{job_id}/{project} to check status."}
@@ -206,3 +219,58 @@ async def get_job_result(job_id: str, project: str = DEFAULT_PROJECT):
             return {"status": "pending"}
     except Exception as e:
         return {"error": f"Error fetching job status: {e}"}
+
+@app.websocket("/ws/predict/job/{job_id}/{project}")
+async def ws_job_result(websocket: WebSocket, job_id: str, project: str = DEFAULT_PROJECT):
+    """
+    WebSocket endpoint to stream job status updates.
+    Sends JSON messages: {"status": "pending"}, {"status": "done", "result": ...},
+    or {"status": "failed"} / {"status": "error", "message": ...}
+    Closes the connection once the job reaches a terminal state.
+    """
+    await websocket.accept()
+
+    if project not in config.keys():
+        await websocket.send_text(json.dumps({"status": "error", "message": f"Invalid project name {project}"}))
+        await websocket.close()
+        return
+
+    redis_conn = connections[project]
+
+    if not Job.exists(job_id, connection=redis_conn):
+        await websocket.send_text(json.dumps({"status": "error", "message": f"Job ID {job_id} does not exist in project {project}"}))
+        await websocket.close()
+        return
+
+    elapsed = 0.0
+    try:
+        while elapsed < WS_MAX_WAIT:
+            job = Job.fetch(job_id, connection=redis_conn)
+
+            if job.is_finished:
+                info(f"WebSocket job {job_id} finished in project {project}")
+                await websocket.send_text(json.dumps({"status": "done", "result": job.return_value()}))
+                break
+            elif job.is_failed:
+                info(f"WebSocket job {job_id} failed in project {project}")
+                await websocket.send_text(json.dumps({"status": "failed"}))
+                break
+            else:
+                await websocket.send_text(json.dumps({"status": "pending"}))
+
+            await asyncio.sleep(WS_POLL_INTERVAL)
+            elapsed += WS_POLL_INTERVAL
+        else:
+            await websocket.send_text(json.dumps({"status": "error", "message": "Timed out waiting for job"}))
+    except WebSocketDisconnect:
+        debug(f"WebSocket client disconnected for job {job_id} in project {project}")
+    except Exception as e:
+        try:
+            await websocket.send_text(json.dumps({"status": "error", "message": str(e)}))
+        except Exception:
+            pass
+    finally:
+        try:
+            await websocket.close()
+        except Exception:
+            pass

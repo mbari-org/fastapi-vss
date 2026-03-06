@@ -12,6 +12,8 @@ from app.predictors.tasks import MyWorker
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+# Suppress verbose PIL/Pillow PNG stream debug logs
+logging.getLogger("PIL").setLevel(logging.WARNING)
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.DEBUG)
 logger.addHandler(console_handler)
@@ -39,15 +41,24 @@ if __name__ == "__main__":
 
     from app.config import init_config
 
-    config = init_config()
+    try:
+        config = init_config()
 
-    for project, v_config in config.items():
-        redis_host = v_config["redis_host"]
-        redis_port = v_config["redis_port"]
-        password = os.getenv("REDIS_PASSWD")
-        p = multiprocessing.Process(target=start_worker_for_project, args=(project, redis_host, redis_port, password))
-        p.start()
-        processes.append(p)
+        if len(config) == 0:
+            raise Exception("No projects found in the configuration file")
 
-    for p in processes:
-        p.join()
+        for project, v_config in config.items():
+            redis_host = v_config["redis_host"]
+            redis_port = v_config["redis_port"]
+            password = os.getenv("REDIS_PASSWD")
+            p = multiprocessing.Process(target=start_worker_for_project, args=(project, redis_host, redis_port, password))
+            p.start()
+            processes.append(p)
+
+        for p in processes:
+            p.join()
+    except Exception as e:
+        logger.error(f"Error starting worker processes: {e}")
+        raise
+
+    logger.info("All worker processes completed.")

@@ -1,39 +1,8 @@
 services:
 
 ###################################################################
-# Services
+# Services - Development Configuration
 ###################################################################
-  fastapi:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: mbari/fastapi-vss:${GIT_VERSION}
-    container_name: fastapi-vss
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://fastapi-vss:8000/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    env_file:
-      - .env
-    command:
-      - /bin/sh
-      - -c
-      - uvicorn src.app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/src
-    ports:
-      - "8000:8000"
-    environment:
-      - LOG_DIR=/tmp/logs
-      - CONFIG_PATH=/app/config
-    volumes:
-      - log:/tmp/logs
-      - ./src:/app/src
-      - ./config:/app/config
-    restart: always
-    depends_on:
-      - redis-stack
-    networks:
-      - vss
   redis-stack:
     env_file:
       - .env
@@ -42,60 +11,17 @@ services:
       - -c
       - redis-stack-server  --port 6379 --appendonly yes --appendfsync everysec --requirepass "$${REDIS_PASSWD:?REDIS_PASSWD variable is not set}"
     image: redis/redis-stack-server
-    container_name: redis-stack-vss
+    container_name: redis-stack-vss-dev
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
-    restart: always
+    restart: unless-stopped
     networks:
       - vss
-  rq-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    env_file:
-      - .env
-    image: mbari/fastapi-vss:${GIT_VERSION}
-    container_name: rq-worker-vss
-    environment:
-      - REDIS_PASSWD=${REDIS_PASSWD}
-      - LOG_DIR=/tmp/logs
-    command:
-      - /bin/sh
-      - -c
-      - python /app/src/app/start_worker.py
-    volumes:
-      - worker-data:/data
-      - rq-worker-log:/tmp/logs
-      - ./src:/app/src
-    depends_on:
-      - fastapi
-    networks:
-      - vss
-  loader:
-    image: mbari/fastapi-vss:${GIT_VERSION}
-    container_name: rq-worker-loader
-    env_file:
-      - .env
-    command:
-        - /bin/sh
-        - -c
-        - python /app/tests/load.py
-    environment:
-      - REDIS_PASSWD=${REDIS_PASSWD}
-      - REDIS_HOST=redis-stack-vss
-      - REDIS_PORT=6379
-    volumes:
-      - ./tests:/app/tests
-    depends_on:
-        - redis-stack
-    networks:
-        - vss
+
 volumes:
   redis-data:
-  log:
-  rq-worker-log:
-  worker-data:
+
 networks:
   vss:

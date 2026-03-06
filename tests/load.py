@@ -14,9 +14,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 test_images = Path(__file__).parent / "images" / "atolla"
-DEFAULT_MODEL = "google/vit-base-patch16-224"
+DEFAULT_MODEL = "/models/vit-base-patch16-224"
 DEFAULT_HOST = os.getenv("REDIS_HOST", "localhost")
-# DEFAULT_MODEL = "/Users/dcline/Dropbox/data/models/Planktivore/mbari-ptvr-vits-b8-20250513"
 vector_dimensions = 768  # Default for ViT base model
 reset = True
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

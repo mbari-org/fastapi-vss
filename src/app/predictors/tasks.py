@@ -5,6 +5,7 @@ import gc
 import json
 import logging
 import os
+import tempfile
 import time
 import traceback
 from datetime import datetime
@@ -36,7 +37,10 @@ class MyWorker(SimpleWorker):
         redis_host = config[project]["redis_host"]
         redis_port = config[project]["redis_port"]
         v_config = config[project]
-        password = os.getenv("REDIS_PASSWD", None)
+        password = os.getenv("REDIS_PASSWD")
+        if password is None:
+            logger.warning("REDIS_PASSWD environment variable is not set. Using default password.")
+            raise Exception("REDIS_PASSWD environment variable is not set. Cannot start worker.")
         batch_size = int(os.getenv("BATCH_SIZE", 32))
         logger.info(f"Connecting to redis at {redis_host}:{redis_port}")
         logger.info(f"Redis queue for project {project} created successfully")
@@ -46,13 +50,27 @@ class MyWorker(SimpleWorker):
         return super().work(burst, logging_level)
 
 
-def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, filenames: List[str]) -> dict:
+def _bytes_to_temp_paths(image_data: List[bytes], filenames: List[str]) -> List[str]:
+    """Write image bytes to temp files and return their paths. Caller must unlink paths when done."""
+    paths = []
+    for data, name in zip(image_data, filenames):
+        suffix = Path(name).suffix or ".png"
+        fd, path = tempfile.mkstemp(suffix=suffix)
+        try:
+            os.write(fd, data)
+        finally:
+            os.close(fd)
+        paths.append(path)
+    return paths
+
+
+def predict_on_cpu_or_gpu(v_config: dict, image_data: List[bytes], top_n: int, filenames: List[str]) -> dict:
+    temp_paths = _bytes_to_temp_paths(image_data, filenames)
     try:
-        logger.info(f"Predicting on {len(image_list)} images with top_n={top_n} using model {v_config['model']} on device {v_config['device']}")
+        logger.info(f"Predicting on {len(temp_paths)} images with top_n={top_n} using model {v_config['model']} on device {v_config['device']}")
         predictor = _predictor_stack.top
-        predictions, scores, ids = predictor.predict(image_list, top_n)
+        predictions, scores, ids = predictor.predict(temp_paths, top_n)
         gc.collect()
-        del image_list
 
         # Use the current date and time (hourly granularity) for output directory and time with nanoseconds for the filename to ensure uniqueness
         current_time_hr = datetime.now().strftime("%Y%m%d_%H0000")
@@ -80,15 +98,21 @@ def predict_on_cpu_or_gpu(v_config: dict, image_list: List[str], top_n: int, fil
         error_message = f"Error during prediction: {e}\n{traceback.format_exc()}"
         logger.info(error_message)
         return error_message
+    finally:
+        for p in temp_paths:
+            try:
+                os.unlink(p)
+            except OSError:
+                pass
 
 
-def get_embeddings_task(v_config: dict, image_list: List[str], filenames: List[str]) -> dict:
+def get_embeddings_task(v_config: dict, image_data: List[bytes], filenames: List[str]) -> dict:
+    temp_paths = _bytes_to_temp_paths(image_data, filenames)
     try:
-        logger.info(f"Getting embeddings for {len(image_list)} images using model {v_config['model']} on device {v_config['device']}")
+        logger.info(f"Getting embeddings for {len(temp_paths)} images using model {v_config['model']} on device {v_config['device']}")
         predictor = _predictor_stack.top
-        embeddings = predictor.get_embeddings(image_list)
+        embeddings = predictor.get_embeddings(temp_paths)
         gc.collect()
-        del image_list
 
         output_final = {
             "filenames": filenames,
@@ -99,3 +123,9 @@ def get_embeddings_task(v_config: dict, image_list: List[str], filenames: List[s
         error_message = f"Error during embedding generation: {e}\n{traceback.format_exc()}"
         logger.info(error_message)
         return error_message
+    finally:
+        for p in temp_paths:
+            try:
+                os.unlink(p)
+            except OSError:
+                pass

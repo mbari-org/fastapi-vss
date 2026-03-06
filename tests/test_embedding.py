@@ -1,13 +1,15 @@
 import sys
 import time
-
+import os
 import requests
+from pathlib import Path
 
+this_dir = Path(__file__).parent.parent.resolve()
 BASE_URL = "http://localhost:8000"
 PROJECT = "testproject"
-IMAGE_PATH = "tests/images/mammal/elephant.jpg"
+IMAGE_PATH = os.path.join(this_dir, "tests/images/mammal/elephant.jpg")
 POLL_INTERVAL = 2
-MAX_WAIT = 60
+MAX_WAIT = 30
 EXPECTED_EMBEDDING_DIM = 768
 
 
@@ -20,10 +22,12 @@ def test_embed_endpoint():
     data = response.json()
     assert "job_id" in data, f"Missing job_id in response: {data}"
     job_id = data["job_id"]
-    print(f"Submitted embedding job: {job_id}")
+    print(f"Submitted embedding job: {job_id}. Waiting up to {MAX_WAIT}s for completion...")
 
     elapsed = 0
     result = None
+    # Sleep for 10 seconds and check the job status every 2 seconds
+    time.sleep(10)
     while elapsed < MAX_WAIT:
         time.sleep(POLL_INTERVAL)
         elapsed += POLL_INTERVAL

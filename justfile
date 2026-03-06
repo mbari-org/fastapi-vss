@@ -38,7 +38,12 @@ setup-env:
     CONFIG_PATH=$CONFIG_DIR
     EOF
 
-    mkdir -p logs
+    # Update config paths to absolute paths for local development
+    sed -i '' "s|\./|$PWD/|g" $CONFIG_DIR/config.dev.yml
+
+    # Prepare directories and download the ViT model for local development
+    mkdir -p logs models/vit-base-patch16-224
+    hf download google/vit-base-patch16-224 --local-dir models/vit-base-patch16-224
 
 # Update the conda development environment. Run this command after checking out any code changes
 update:
@@ -55,50 +60,51 @@ kill-uvicorn:
     fi
 
 # Run the FastAPI server locally in development mode
-run-server: kill-uvicorn
+run-server-dev: kill-uvicorn
     #!/usr/bin/env bash
     echo "FastAPI server running at http://localhost:8000"
     echo "FastAPI docs running at http://localhost:8000/docs"
     conda activate fastapi-vss
     export PYTHONPATH=$PWD/src
     cd src/app &&
-    uvicorn main:app --port 8000 --reload
+    uvicorn main:app --port 8000 --reload &
+    python src/app/start_worker.py
 
 # Test the github action with act
 run-act:
     act -P ubuntu-latest=catthehacker/ubuntu:act-latest -j test --container-architecture linux/amd64
 
-# Run the FastAPI server in development mode with Docker Compose
-run-server-dev: setup-env
+# Run the Redis server in development mode with Docker Compose
+run-redis-dev: setup-env
     #!/usr/bin/env bash
     tag=$(git describe --tags --always)
     GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.dev.yml down && \
     GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.dev.yml up -d
 
 #  Stop the FastAPI server in development mode with Docker Compose
-stop-server-dev:
+stop-redis-dev:
     #!/usr/bin/env bash
     tag=$(git describe --tags --always)
     GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.dev.yml down
 
-# Run the FastAPI server in production mode with Docker Compose
+# Run the full stack in production mode with Docker Compose
 run-server-prod: setup-env
     #!/usr/bin/env bash
     tag=$(git describe --tags --abbrev=0 | sed 's/^v//')
     GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.yml down --remove-orphans && \
-    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.yml up -d
+    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.yml up
 
-#  Stop the FastAPI server in development mode with Docker Compose
+#  Stop the full stack in development mode with Docker Compose
 stop-server-prod:
     #!/usr/bin/env bash
     tag=$(git describe --tags --abbrev=0 | sed 's/^v//')
-    GIT_VERSION=$tag COMPOSE_PROJECT_NAME=fastapi-vss docker-compose -f compose.yml down
+    GIT_VERSION=$tag docker-compose -f compose.yml down
 
 # Build the Docker image without CUDA support for development
 build-docker:
     #!/usr/bin/env bash
     tag=$(git describe --tags --abbrev=0 | sed 's/^v//')
-    docker build -t mbari/fastapi-vss:$tag -f Dockerfile .
+    docker build --no-cache -t mbari/fastapi-vss:$tag -f Dockerfile .
 
 # Build the CUDA Docker image for development
 build-docker-cuda:

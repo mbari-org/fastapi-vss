@@ -1,6 +1,7 @@
 # fastapi-vss, Apache-2.0 license
 # Filename: predictors/process_vits.py
 # Description: Process images with Vision Transformer (ViT) model and search by KNN embeddings in Redis vector store
+import os
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
@@ -24,15 +25,18 @@ logger.addHandler(console)
 
 
 class ViTWrapper:
-    DEFAULT_MODEL_NAME = "google/vit-base-patch16-224"
 
-    def __init__(self, r: redis.Redis, device, model_name: str = DEFAULT_MODEL_NAME, reset: bool = False, batch_size: int = 32):
+    def __init__(self, r: redis.Redis, device, model_name: str, reset: bool = False, batch_size: int = 32):
         self.r = r
         self.device = device
         self.batch_size = batch_size
         self.processor = AutoImageProcessor.from_pretrained(model_name)
         self.model = AutoModel.from_pretrained(model_name).to(self.device)
         self.vs = VectorSimilarity(r, vector_dimensions=self.vector_dimensions, reset=reset)
+        if model_name.startswith("/"):
+            if not os.path.exists(model_name):
+                raise FileNotFoundError(f"Model directory {model_name} does not exist")
+
 
     @property
     def vector_dimensions(self) -> int:

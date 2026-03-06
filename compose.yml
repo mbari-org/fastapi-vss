@@ -23,10 +23,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - LOG_DIR=/tmp/logs
       - CONFIG_PATH=/app/config
     volumes:
-      - log:/tmp/logs
+      - ./config/prod:/app/config
     restart: always
     depends_on:
       - redis-stack
@@ -58,14 +57,15 @@ services:
     container_name: rq-worker-vss
     environment:
       - REDIS_PASSWD=${REDIS_PASSWD}
-      - LOG_DIR=/tmp/logs
+      - CONFIG_PATH=/app/config
     command:
       - /bin/sh
       - -c
       - python /app/src/app/start_worker.py
     volumes:
       - worker-data:/data
-      - rq-worker-log:/tmp/logs
+      - ./models:/models
+      - ./config/prod:/app/config
     depends_on:
       - fastapi
     networks:
@@ -85,14 +85,13 @@ services:
       - REDIS_PORT=6379
     volumes:
       - ./tests:/app/tests
+      - ./models:/models
     depends_on:
         - redis-stack
     networks:
         - vss
 volumes:
   redis-data:
-  log:
-  rq-worker-log:
   worker-data:
 networks:
   vss:
