@@ -1,6 +1,8 @@
 # fastapi-vss, Apache-2.0 license
 # Filename: app/main.py
 # Description: Process images with Vision Transformer (ViT) models
+import asyncio
+import json
 import logging
 import os
 
@@ -16,7 +18,7 @@ try:
 except ImportError:
     pynvml = None
 
-from fastapi import FastAPI, status, File, UploadFile
+from fastapi import FastAPI, status, File, UploadFile, WebSocket, WebSocketDisconnect
 from typing import List
 
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -56,6 +58,11 @@ if len(config) == 0:
 
 queues = {}
 connections = {}
+
+# WebSocket poll interval in seconds - short enough to be responsive, avoids hammering Redis
+WS_POLL_INTERVAL = 0.5
+# Maximum time to wait for a job to complete before closing the WebSocket
+WS_MAX_WAIT = 300  # 5 minutes
 
 for project in config.keys():
     redis_host = config[project]["redis_host"]
@@ -212,3 +219,58 @@ async def get_job_result(job_id: str, project: str = DEFAULT_PROJECT):
             return {"status": "pending"}
     except Exception as e:
         return {"error": f"Error fetching job status: {e}"}
+
+@app.websocket("/ws/predict/job/{job_id}/{project}")
+async def ws_job_result(websocket: WebSocket, job_id: str, project: str = DEFAULT_PROJECT):
+    """
+    WebSocket endpoint to stream job status updates.
+    Sends JSON messages: {"status": "pending"}, {"status": "done", "result": ...},
+    or {"status": "failed"} / {"status": "error", "message": ...}
+    Closes the connection once the job reaches a terminal state.
+    """
+    await websocket.accept()
+
+    if project not in config.keys():
+        await websocket.send_text(json.dumps({"status": "error", "message": f"Invalid project name {project}"}))
+        await websocket.close()
+        return
+
+    redis_conn = connections[project]
+
+    if not Job.exists(job_id, connection=redis_conn):
+        await websocket.send_text(json.dumps({"status": "error", "message": f"Job ID {job_id} does not exist in project {project}"}))
+        await websocket.close()
+        return
+
+    elapsed = 0.0
+    try:
+        while elapsed < WS_MAX_WAIT:
+            job = Job.fetch(job_id, connection=redis_conn)
+
+            if job.is_finished:
+                info(f"WebSocket job {job_id} finished in project {project}")
+                await websocket.send_text(json.dumps({"status": "done", "result": job.return_value()}))
+                break
+            elif job.is_failed:
+                info(f"WebSocket job {job_id} failed in project {project}")
+                await websocket.send_text(json.dumps({"status": "failed"}))
+                break
+            else:
+                await websocket.send_text(json.dumps({"status": "pending"}))
+
+            await asyncio.sleep(WS_POLL_INTERVAL)
+            elapsed += WS_POLL_INTERVAL
+        else:
+            await websocket.send_text(json.dumps({"status": "error", "message": "Timed out waiting for job"}))
+    except WebSocketDisconnect:
+        debug(f"WebSocket client disconnected for job {job_id} in project {project}")
+    except Exception as e:
+        try:
+            await websocket.send_text(json.dumps({"status": "error", "message": str(e)}))
+        except Exception:
+            pass
+    finally:
+        try:
+            await websocket.close()
+        except Exception:
+            pass

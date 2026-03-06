@@ -68,25 +68,9 @@ def _deep_merge_dict(base: dict, override: dict) -> dict:
 def _is_in_docker() -> bool:
     """
     Detect if running inside a Docker container.
-    Checks for common Docker indicators.
     """
-    # Check for environment variable (most reliable and explicit)
-    if os.getenv("IN_DOCKER") == "1":
+    if "IN_DOCKER" in os.environ and "1" in os.getenv("IN_DOCKER"):
         return True
-    
-    # Check for Docker-specific files
-    if os.path.exists("/.dockerenv"):
-        return True
-    
-    # Check /proc/1/cgroup for Docker/containerd indicators
-    if os.path.exists("/proc/1/cgroup"):
-        try:
-            with open("/proc/1/cgroup", "r") as f:
-                content = f.read()
-                if "docker" in content.lower() or "containerd" in content.lower():
-                    return True
-        except (IOError, OSError):
-            pass
     
     return False
 
@@ -137,7 +121,8 @@ def init_config(target_project=None) -> dict[Any, dict[str, device | Any]]:
     # Read the yaml configuration files for each project
     for yaml_path in CONFIG_PATH.rglob("*.yml"):
         if not yaml_path.exists():
-            raise FileNotFoundError(f"Could not find {yaml_path}")
+            err(f"Could not find {yaml_path}")
+            return {}
 
         # Read the local yaml configuration file
         with yaml_path.open("r") as yaml_file:
@@ -160,6 +145,7 @@ def init_config(target_project=None) -> dict[Any, dict[str, device | Any]]:
             
             project = data["vss"]["project"]
             if target_project and project != target_project:
+                info(f"Skipping project {project} as it's not the target project {target_project}")
                 continue
 
             # Choose Redis host based on environment

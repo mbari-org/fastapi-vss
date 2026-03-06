@@ -1,0 +1,13 @@
+# config.yml
+# Config file for testing
+
+redis:
+  host: "localhost"  # Used when running natively (outside Docker)
+  internal_host: "redis-stack-vss"  # Used when running inside Docker
+  port: 6379
+  project: "testproject"
+
+vss:
+  model: "/models/vit-base-patch16-224" # Model to use for VSS can be a Hugging Face model ID or a local path
+  project: "testproject" # Project name for VSS
+  output_path: "/data/vss/outputs"  # Directory where VSS saves JSON results

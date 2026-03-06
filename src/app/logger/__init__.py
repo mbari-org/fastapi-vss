@@ -1,7 +1,7 @@
 # fastapi-vss, Apache-2.0 license
 # Filename: app/conf/init_config.py
 # Description:  Logger for fastapi-vss. Logs to both a file and the console
-
+import datetime
 import logging
 import os
 from pathlib import Path
@@ -40,7 +40,7 @@ class CustomLogger(Singleton):
         formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s")
 
         # default log file date to today
-        now = dt.utcnow()
+        now = dt.now(datetime.UTC)
 
         # log to file
         log_filename = output_path / f"{output_prefix}_{now:%Y%m%d}.log"

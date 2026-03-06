@@ -25,9 +25,8 @@ logger.addHandler(console)
 
 
 class ViTWrapper:
-    DEFAULT_MODEL_NAME = "google/vit-base-patch16-224"
 
-    def __init__(self, r: redis.Redis, device, model_name: str = DEFAULT_MODEL_NAME, reset: bool = False, batch_size: int = 32):
+    def __init__(self, r: redis.Redis, device, model_name: str, reset: bool = False, batch_size: int = 32):
         self.r = r
         self.device = device
         self.batch_size = batch_size

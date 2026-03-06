@@ -1,9 +1,14 @@
-# aws cdk
+# Model artifacts
+models/
+
 aws-cdk-examples/
 cdk.out/
 
 # checkpoints
 .pt
+
+# JSON files
+*.json
 
 # test data
 data/

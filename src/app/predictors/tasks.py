@@ -37,7 +37,10 @@ class MyWorker(SimpleWorker):
         redis_host = config[project]["redis_host"]
         redis_port = config[project]["redis_port"]
         v_config = config[project]
-        password = os.getenv("REDIS_PASSWD", None)
+        password = os.getenv("REDIS_PASSWD")
+        if password is None:
+            logger.warning("REDIS_PASSWD environment variable is not set. Using default password.")
+            raise Exception("REDIS_PASSWD environment variable is not set. Cannot start worker.")
         batch_size = int(os.getenv("BATCH_SIZE", 32))
         logger.info(f"Connecting to redis at {redis_host}:{redis_port}")
         logger.info(f"Redis queue for project {project} created successfully")
