@@ -67,6 +67,7 @@ services:
       - ./models:/models
       - ./config/prod:/app/config
     depends_on:
+      - redis-stack
       - fastapi
     networks:
       - vss
@@ -81,7 +82,7 @@ services:
         - python /app/tests/load.py
     environment:
       - REDIS_PASSWD=${REDIS_PASSWD}
-      - REDIS_HOST=redis-stack-vss
+      - REDIS_HOST=redis-stack
       - REDIS_PORT=6379
     volumes:
       - ./tests:/app/tests

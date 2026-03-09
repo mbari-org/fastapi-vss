@@ -73,7 +73,97 @@ vss:
 Add `config_url: "https://..."` to merge remote config (remote overrides local). Timeout 30s.
 
 ---
-![](https://raw.githubusercontent.com/mbari-org/fastapi-vss/main/docs/imgs//restwebui.png)
+
+## Development
+
+Recipes are managed with [`just`](https://github.com/casey/just). Install it with:
+
+```bash
+brew install just        # macOS
+cargo install just       # any platform with Rust
+```
+
+List all available recipes:
+
+```bash
+just list
+```
+
+### Setup
+
+Create the conda environment, install dependencies, and configure pre-commit hooks:
+
+```bash
+just install
+```
+
+This will:
+1. Create (or update) the `fastapi-vss` conda environment from `environment.yml`
+2. Install the pinned `redis-py` wheel
+3. Install pre-commit hooks
+4. Print the activation command when done
+
+Activate the environment:
+
+```bash
+conda activate fastapi-vss
+```
+
+Regenerate the `.env` file and prepare local config/model paths:
+
+```bash
+just setup-env
+```
+
+This creates `.env` with Redis credentials and downloads the default ViT model to `models/vit-base-patch16-224`.
+
+### Running locally
+
+Start Redis only (needed before running the FastAPI server locally):
+
+```bash
+just run-redis-dev
+```
+
+Start the FastAPI server + RQ worker in development mode (hot-reload enabled):
+
+```bash
+just run-server-dev
+```
+
+API is available at `http://localhost:8000` and docs at `http://localhost:8000/docs`.
+
+### Testing
+
+Run the test suite against a locally running production stack:
+
+```bash
+just test
+```
+
+This starts the full Docker Compose stack, waits for the server to be healthy, then runs `tests/test_endpoint.py`.
+
+Run pre-commit checks before committing:
+
+```bash
+just pre-commit
+```
+
+### Docker
+
+Build the CPU image:
+
+```bash
+just build-docker
+```
+
+Build the CUDA image:
+
+```bash
+just build-docker-cuda
+```
+
+---
 
 ## Related
 

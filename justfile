@@ -17,10 +17,16 @@ pre-commit:
 # Setup the environment for development
 install: setup-env
     #!/usr/bin/env bash
-    conda env create -f environment.yml
-    conda activate fastapi-vss
-    python -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
-    pre-commit install
+    set -euo pipefail
+    if conda env list | grep -q "^fastapi-vss "; then
+        echo "Environment fastapi-vss already exists, updating..."
+        conda env update -n fastapi-vss -f environment.yml --prune
+    else
+        conda env create -n fastapi-vss -f environment.yml
+    fi
+    conda run -n fastapi-vss python -m pip install https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip
+    conda run -n fastapi-vss pre-commit install
+    echo "Done. Activate with: conda activate fastapi-vss"
 
 # Run tests. Run this before committing code to ensure tests pass which are required before release
 test: run-server-prod
