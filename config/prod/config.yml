@@ -3,7 +3,7 @@
 
 redis:
   host: "localhost"  # Used when running natively (outside Docker)
-  internal_host: "redis-stack-vss"  # Used when running inside Docker
+  internal_host: "redis-stack"  # Docker Compose service name (same as in compose.yml)
   port: 6379
   project: "testproject"
 
