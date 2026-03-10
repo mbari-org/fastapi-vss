@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/language-Python-blue.svg)](https://www.python.org/downloads/)
 
-**fastapi-vss** is a RESTful API for vector similarity search using FastAPI and **Redis**—the fastest vector database available. Redis Stack's in-memory RediSearch delivers sub-millisecond KNN queries. ViT (Vision Transformer) models power image retrieval, rare event mining, anomaly detection, and labeling unlabeled data (e.g., plankton, marine imagery).
+**vss** is a vector similarity search service that using FastAPI and **Redis**—the fastest vector database available. Redis Stack's in-memory RediSearch delivers sub-millisecond KNN queries. ViT (Vision Transformer) models power image retrieval, rare event mining, anomaly detection, and labeling unlabeled data (e.g., plankton, marine imagery).
 
 **Author:** [Danelle Cline](https://github.com/danellecline)
 
@@ -11,7 +11,7 @@
 
 ## Architecture
 
-Built on **Redis Stack** (vector store + job queue)—the fastest option for vector similarity workloads. **Project isolation**: each project can use a dedicated Redis instance (host/port) so vector indexes and queues stay separate.
+Built on **Redis Stack** (vector store + job queue)—the for vector similarity workloads. **Project isolation**: each project can use a dedicated Redis instance (host/port) so vector indexes and queues stay separate.
 
 **Batching:** The pipeline is tuned for high-throughput batch inference. Set `BATCH_SIZE` (default 32) via environment variable to match GPU memory. RQ decouples the API from inference so requests enqueue and process asynchronously. Multiple workers run in parallel (one per project), and preprocessing uses a thread pool for parallel image loading.
 
