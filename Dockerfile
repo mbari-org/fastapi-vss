@@ -38,4 +38,4 @@ COPY . .
 
 EXPOSE 80
 WORKDIR $APP_HOME/src/app
-CMD ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port 80"]
+CMD ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port 80 --ws-max-size 10485760"]

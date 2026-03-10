@@ -74,7 +74,7 @@ run-server-dev: kill-uvicorn
     conda activate fastapi-vss
     export PYTHONPATH=$PWD/src
     cd src/app &&
-    uvicorn main:app --port 8000 --reload &
+    uvicorn main:app --port 8000 --reload --ws-max-size 10485760 &
     python src/app/start_worker.py
 
 # Test the github action with act
