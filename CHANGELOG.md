@@ -2,6 +2,13 @@
 
 
 
+## v0.14.0 (2026-03-12)
+
+### Feature
+
+* feat: added CORSMiddleware ([`0719845`](https://github.com/mbari-org/vss/commit/07198450b81400a33e7706b128b3af332f7e95ea))
+
+
 ## v0.13.1 (2026-03-10)
 
 ### Build
