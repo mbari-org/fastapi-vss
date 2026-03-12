@@ -2,6 +2,17 @@
 
 
 
+## v0.14.1 (2026-03-12)
+
+### Build
+
+* build: added missing IN_DOCKER to cuda build ([`e587417`](https://github.com/mbari-org/vss/commit/e587417754318573eda469d7ef3f5fd8ceac92b1))
+
+### Fix
+
+* fix: handle spooled and raw bytes ([`3a01d72`](https://github.com/mbari-org/vss/commit/3a01d720f81b620b88f0439ca08556ac6a87cba8))
+
+
 ## v0.14.0 (2026-03-12)
 
 ### Feature
