@@ -10,6 +10,7 @@ import warnings
 import redis
 import torch
 from fastapi import FastAPI, status, File, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 from prometheus_fastapi_instrumentator import Instrumentator
 from rq import Queue
@@ -40,11 +41,26 @@ logging.getLogger("PIL").setLevel(logging.WARNING)
 
 info(f"Starting Fast-VSS API version {__version__}")
 
+# Origins allowed for CORS (e.g. when behind a reverse proxy). Comma-separated list via FASTAPI_VSS_CORS_ORIGINS.
+CORS_ORIGINS: List[str] = []
+_cors_env = os.environ.get("FASTAPI_VSS_CORS_ORIGINS", "").strip()
+if _cors_env:
+    CORS_ORIGINS.extend(origin.strip() for origin in _cors_env.split(",") if origin.strip())
+
 app = FastAPI(
     title=f"Fast-VSS API version {__version__}",
     description=f"""Run vector similarity search using Vision Transformer (ViT) models . Version {__version__}""",
     version=__version__,
 )
+if CORS_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["*"],
+    )
 
 Instrumentator().instrument(app).expose(app)
 
