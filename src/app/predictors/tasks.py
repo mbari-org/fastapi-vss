@@ -58,7 +58,12 @@ def _bytes_to_temp_paths(image_data: List[bytes], filenames: List[str]) -> List[
         suffix = Path(name).suffix or ".png"
         fd, path = tempfile.mkstemp(suffix=suffix)
         try:
-            os.write(fd, data)
+            if hasattr(data, "read"):
+                data.seek(0)
+                raw = data.read()
+            else:
+                raw = data
+            os.write(fd, raw)
         finally:
             os.close(fd)
         paths.append(path)
