@@ -1,32 +1,40 @@
 # ================================================================
-#  Docker image for fastapi-vss CUDA
+#  Docker image for fastapi-vss (CUDA 13, deploy: multi-stage + non-root)
+#  Both stages use the same NVIDIA base + deadsnakes Python 3.11
+#  so the virtualenv symlinks and ABI stay consistent.
 # ================================================================
-FROM python:3.11-slim AS builder
+FROM nvidia/cuda:13.0.1-runtime-ubuntu22.04 AS builder
 
-ARG NUM_WORKERS=1
-ARG GIT_VERSION=latest
-ARG IMAGE_URI=mbari/fastapi-vss:${GIT_VERSION}
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        python3.11 python3.11-venv python3.11-dev && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m venv /venv
+RUN python3.11 -m venv /venv
 ENV PATH="/venv/bin:$PATH"
 
 WORKDIR /app
 COPY src/requirements.txt src/requirements.txt
-# Install all requirements first, then reinstall torch/torchvision from CUDA index to ensure CUDA build
 RUN pip install --no-cache-dir -r src/requirements.txt && \
     pip install --no-cache-dir https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip && \
-    pip install --force-reinstall --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu121
+    pip install --force-reinstall --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu130
 
 # -----------------------------------------------------------------------------
-FROM python:3.11-slim
+FROM nvidia/cuda:13.0.1-runtime-ubuntu22.04
 
 LABEL vendor="MBARI"
 LABEL maintainer="dcline@mbari.org"
 LABEL license="Apache License 2.0"
 
-# curl for health-check; X11/OpenGL for torchvision
 RUN apt-get update && \
+    apt-get install -y --no-install-recommends software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
+        python3.11 python3.11-venv \
         curl libxcb1 libxcb-xinerama0 libxrender1 libxext6 libsm6 libice6 libgl1 && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -36,15 +44,19 @@ ENV HF_HOME=/tmp/transformers_cache
 ENV NO_ALBUMENTATIONS_UPDATE=1
 ENV PYTHONPATH=${APP_HOME}/src:${APP_HOME}
 ENV IN_DOCKER=1
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
 WORKDIR $APP_HOME
 COPY --from=builder /venv /venv
 COPY . .
 
-RUN mkdir -p /tmp/transformers_cache /tmp/logs
+RUN mkdir -p /tmp/transformers_cache /tmp/logs && \
+    chown -R 12078:20 $APP_HOME /venv /tmp/transformers_cache /tmp/logs
+
 
 ARG NUM_WORKERS=1
 ENV NUM_WORKERS=${NUM_WORKERS}
 EXPOSE 80
 WORKDIR $APP_HOME/src/app
-CMD ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port 80 --workers ${NUM_WORKERS} --ws-max-size 10485760"]
+CMD ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port 80 --workers ${NUM_WORKERS} --ws-max-size 10485760 --log-level warning"]
