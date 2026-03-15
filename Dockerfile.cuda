@@ -4,7 +4,7 @@
 #  so the virtualenv symlinks and ABI stay consistent.
 # ================================================================
 FROM nvidia/cuda:13.0.1-runtime-ubuntu22.04 AS builder
-
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository ppa:deadsnakes/ppa && \
@@ -24,7 +24,7 @@ RUN pip install --no-cache-dir -r src/requirements.txt && \
 
 # -----------------------------------------------------------------------------
 FROM nvidia/cuda:13.0.1-runtime-ubuntu22.04
-
+ENV DEBIAN_FRONTEND=noninteractive
 LABEL vendor="MBARI"
 LABEL maintainer="dcline@mbari.org"
 LABEL license="Apache License 2.0"
