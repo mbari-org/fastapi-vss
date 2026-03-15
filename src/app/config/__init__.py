@@ -110,6 +110,28 @@ def init_config(target_project=None) -> dict[Any, dict[str, device | Any]]:
     :return: Dictionary of configuration settings keyed by project name
     """
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    # #region agent log
+    import json as _dj
+    import time as _dt
+
+    try:
+        with open("/tmp/debug-31e49a.log", "a") as _f:
+            _f.write(
+                _dj.dumps(
+                    {
+                        "sessionId": "31e49a",
+                        "timestamp": int(_dt.time() * 1000),
+                        "location": "config/__init__.py:init_config",
+                        "message": "device selection",
+                        "data": {"device": str(device), "cuda_available": torch.cuda.is_available(), "target_project": target_project},
+                        "hypothesisId": "H1",
+                    }
+                )
+                + "\n"
+            )
+    except Exception:
+        pass
+    # #endregion
     config = {}
     in_docker = _is_in_docker()
 

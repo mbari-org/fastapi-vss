@@ -31,6 +31,29 @@ class ViTWrapper:
         self.batch_size = batch_size
         self.processor = AutoImageProcessor.from_pretrained(model_name)
         self.model = AutoModel.from_pretrained(model_name).to(self.device)
+        # #region agent log
+        import json as _dj
+        import time as _dt
+
+        try:
+            _p0 = next(self.model.parameters())
+            with open("/tmp/debug-31e49a.log", "a") as _f:
+                _f.write(
+                    _dj.dumps(
+                        {
+                            "sessionId": "31e49a",
+                            "timestamp": int(_dt.time() * 1000),
+                            "location": "process_vits.py:ViTWrapper.__init__",
+                            "message": "model loaded",
+                            "data": {"requested_device": str(self.device), "actual_param_device": str(_p0.device), "model_name": model_name, "batch_size": batch_size},
+                            "hypothesisId": "H1,H5",
+                        }
+                    )
+                    + "\n"
+                )
+        except Exception:
+            pass
+        # #endregion
         self.vs = VectorSimilarity(r, vector_dimensions=self.vector_dimensions, reset=reset)
         if model_name.startswith("/"):
             if not os.path.exists(model_name):
