@@ -1,7 +1,5 @@
 # ================================================================
 #  Docker image for fastapi-vss (CUDA 13, deploy: multi-stage + non-root)
-#  Both stages use the same NVIDIA base + deadsnakes Python 3.11
-#  so the virtualenv symlinks and ABI stay consistent.
 # ================================================================
 FROM nvidia/cuda:13.0.1-runtime-ubuntu22.04 AS builder
 ENV DEBIAN_FRONTEND=noninteractive
@@ -18,12 +16,18 @@ ENV PATH="/venv/bin:$PATH"
 
 WORKDIR /app
 COPY src/requirements.txt src/requirements.txt
-RUN pip install --no-cache-dir -r src/requirements.txt && \
+RUN grep -vE '^(torch|torchvision)==' src/requirements.txt > /tmp/reqs-no-torch.txt && \
+    pip install --no-cache-dir -r /tmp/reqs-no-torch.txt && \
     pip install --no-cache-dir https://github.com/redis/redis-py/archive/refs/tags/v5.0.9.zip && \
-    pip install --force-reinstall --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu130
+    pip install --no-cache-dir torch==2.10.0 torchvision==0.25.0 --index-url https://download.pytorch.org/whl/cu130 && \
+    pip install --no-cache-dir huggingface_hub==0.26.0 && \
+
+RUN find /venv -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; \
+    find /venv -type d -name tests -exec rm -rf {} + 2>/dev/null; \
+    true
 
 # -----------------------------------------------------------------------------
-FROM nvidia/cuda:13.0.1-runtime-ubuntu22.04
+FROM nvidia/cuda:13.0.1-base-ubuntu22.04
 ENV DEBIAN_FRONTEND=noninteractive
 LABEL vendor="MBARI"
 LABEL maintainer="dcline@mbari.org"
@@ -50,10 +54,6 @@ ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 WORKDIR $APP_HOME
 COPY --from=builder /venv /venv
 COPY . .
-
-RUN mkdir -p /tmp/transformers_cache /tmp/logs && \
-    chown -R 12078:20 $APP_HOME /venv /tmp/transformers_cache /tmp/logs
-
 
 ARG NUM_WORKERS=1
 ENV NUM_WORKERS=${NUM_WORKERS}
