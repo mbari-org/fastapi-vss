@@ -117,7 +117,7 @@ build-docker:
 build-docker-cuda:
     #!/usr/bin/env bash
     tag=$(git describe --tags --abbrev=0 | sed 's/^v//')
-    docker build -t mbari/fastapi-vss:$tag -f Dockerfile.cuda .
+    docker build -no-cache -t mbari/fastapi-vss:$tag -f Dockerfile.cuda .
 
 # Build the docker images for linux/amd64 and push to Docker Hub
 build-and-push:
@@ -127,7 +127,7 @@ build-and-push:
     echo "Release version: $RELEASE_VERSION"
     RELEASE_VERSION=${RELEASE_VERSION:1}
     docker buildx create --name mybuilder --platform linux/amd64 --use
-    docker buildx build --sbom=true --provenance=true --push --platform linux/amd64  -t mbari/fastapi-vss:$RELEASE_VERSION-cuda124 --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION -f Dockerfile.cuda .
+    docker buildx build -no-cache --sbom=true --provenance=true --push --platform linux/amd64  -t mbari/fastapi-vss:$RELEASE_VERSION-cuda124 --build-arg IMAGE_URI=mbari/fastapi-vss:$RELEASE_VERSION -f Dockerfile.cuda .
 
 # Default recipe
 default:
