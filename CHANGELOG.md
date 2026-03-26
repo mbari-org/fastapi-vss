@@ -2,6 +2,21 @@
 
 
 
+## v0.15.0 (2026-03-26)
+
+### Build
+
+* build: smaller base cuda image for multi-stage ([`8658a17`](https://github.com/mbari-org/vss/commit/8658a17b6e298c7ac61d6a7df95373440a0eb797))
+
+* build: cuda 13 build with ENV DEBIAN_FRONTEND=noninteractive ([`502ec75`](https://github.com/mbari-org/vss/commit/502ec750efb01f8781c89b2624aa69fadf92d5c2))
+
+* build: cuda 13 build ([`d26850f`](https://github.com/mbari-org/vss/commit/d26850f374f5f2b70d9b783f4cfc784d20bffa29))
+
+### Feature
+
+* feat(fiftyone): bump to latest sync version v0.1.0 ([`98dac22`](https://github.com/mbari-org/vss/commit/98dac224adda221709d9cc0c1a24ae072ef96f00))
+
+
 ## v0.14.1 (2026-03-12)
 
 ### Build
