@@ -21,9 +21,15 @@ LABEL vendor="MBARI"
 LABEL maintainer="dcline@mbari.org"
 LABEL license="Apache License 2.0"
 
+ARG UID=1001
+ARG GID=1001
+
 # curl needed for health-check; clean apt in same layer to avoid bloating
 RUN apt-get update && apt-get install -y --no-install-recommends curl && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --gid ${GID} appuser && \
+    useradd --uid ${UID} --gid ${GID} --no-create-home appuser
 
 ENV PATH="/venv/bin:$PATH"
 ENV APP_HOME=/app
@@ -35,6 +41,10 @@ ENV IN_DOCKER=1
 WORKDIR $APP_HOME
 COPY --from=builder /venv /venv
 COPY . .
+
+RUN chown -R appuser:appuser /app /venv
+
+USER ${UID}:${GID}
 
 EXPOSE 80
 WORKDIR $APP_HOME/src/app
