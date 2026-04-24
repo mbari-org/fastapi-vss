@@ -33,6 +33,9 @@ LABEL vendor="MBARI"
 LABEL maintainer="dcline@mbari.org"
 LABEL license="Apache License 2.0"
 
+ARG UID=1001
+ARG GID=1001
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository ppa:deadsnakes/ppa && \
@@ -41,6 +44,9 @@ RUN apt-get update && \
         python3.11 python3.11-venv \
         curl libxcb1 libxcb-xinerama0 libxrender1 libxext6 libsm6 libice6 libgl1 && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --gid ${GID} appuser && \
+    useradd --uid ${UID} --gid ${GID} --no-create-home appuser
 
 ENV PATH="/venv/bin:$PATH"
 ENV APP_HOME=/app
@@ -54,6 +60,10 @@ ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 WORKDIR $APP_HOME
 COPY --from=builder /venv /venv
 COPY . .
+
+RUN chown -R appuser:appuser /app /venv
+
+USER ${UID}:${GID}
 
 ARG NUM_WORKERS=1
 ENV NUM_WORKERS=${NUM_WORKERS}
